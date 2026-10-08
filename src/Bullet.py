@@ -1,10 +1,10 @@
 import pygame
 class Bullet(pygame.sprite.Sprite):
     def __init__(self,player):
-        pygame.sprite.Sprite.__init__(self)
+        super().__init__()
         self.image = pygame.Surface((10,15))
         self.image.fill('white')
-        self.rect = self.image.get_rect(center=player.rect.center)
+        self.rect = self.image.get_rect(center=player.rect.midtop)
 
     def update(self):
         self.rect.y -= 10

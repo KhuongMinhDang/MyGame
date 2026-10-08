@@ -1,8 +1,14 @@
 import pygame
 class player(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self,x):
         super().__init__()
-        self.image=pygame.image.load('asset/image/SpaceShips/Ship_1.png').convert_alpha()
+        self.image_ship=[
+            pygame.image.load('asset/image/SpaceShips/Ship_1.png').convert_alpha(),
+            pygame.image.load('asset/image/SpaceShips/Ship_2.png').convert_alpha(),
+            pygame.image.load('asset/image/SpaceShips/Ship_3.png').convert_alpha(),
+            pygame.image.load('asset/image/SpaceShips/Ship_4.png').convert_alpha()
+            ]
+        self.image=self.image_ship[x]
         self.rect=self.image.get_rect(center=(400,600))
     def update(self):
         # di chuyen va dieu chinh toa do player

@@ -11,29 +11,20 @@ class char_select:
             image = pygame.Surface((250, 130))
             image.fill('gray')
 
-            rect = image.get_rect(
-                center=(
-                    250 + (i % 2) * 300,
-                    150 + (i // 2) * 160
-                )
-            )
+            rect = image.get_rect(center=(250 + (i % 2) * 300,150 + (i // 2) * 160))
 
             self.bosses.append((image, rect))
 
         # 4 may bay
+        self.selected=0
         self.players = []
-
         for i in range(1, 5):
-            image = pygame.image.load(
-                f"asset/image/SpaceShips/Ship_{i}.png"
-            ).convert_alpha()
+            image = pygame.image.load(f"asset/image/SpaceShips/Ship_{i}.png").convert_alpha()
 
             small = pygame.transform.scale(image, (100, 70))
             big = pygame.transform.scale(image, (140, 100))
 
-            rect = small.get_rect(
-                center=(140 + (i - 1) * 175, 500)
-            )
+            rect = small.get_rect(center=(140 + (i - 1) * 175, 500))
 
             self.players.append((small, big, rect))
 
@@ -41,9 +32,7 @@ class char_select:
         self.play_image = pygame.Surface((150, 60))
         self.play_image.fill('green')
 
-        self.play_rect = self.play_image.get_rect(
-            center=(400, 650)
-        )
+        self.play_rect = self.play_image.get_rect(center=(400, 650))
 
     def run(self):
 
@@ -54,7 +43,7 @@ class char_select:
         # Ve 4 may bay
         mouse_pos = pygame.mouse.get_pos()
 
-        for small, big, rect in self.players:
+        for i, (small, big, rect) in enumerate(self.players):
 
             if rect.collidepoint(mouse_pos):
                 image = big
@@ -64,6 +53,17 @@ class char_select:
                 draw_rect = rect
 
             self.screen.blit(image, draw_rect)
+            # Tam giac chi vao may bay dang chon
+            if i == self.selected:
+                pygame.draw.polygon(
+                    self.screen,
+                    (255, 255, 255),
+                    [
+                        (rect.centerx - 8, rect.top - 20),
+                        (rect.centerx + 8, rect.top - 20),
+                        (rect.centerx, rect.top - 5)
+                    ]
+                )
 
         # Ve nut PLAY
         self.screen.blit(self.play_image, self.play_rect)

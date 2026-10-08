@@ -19,7 +19,8 @@ class Game:
         self.state = "MENU"
         # them nguoi choi
         self.player =pygame.sprite.GroupSingle()
-        self.player.add(player())
+        self.player.add(player(0))
+
         # them quai
         self.SPAWM= pygame.USEREVENT+1
         pygame.time.set_timer(self.SPAWM,300)
@@ -50,6 +51,11 @@ class Game:
     def su_kien_char_select(self, event):
         if self.char_select.play_rect.collidepoint(event.pos):
             self.state = "PLAY"
+        for i in range(4):
+            if self.char_select.players[i][2].collidepoint(event.pos):
+                self.char_select.selected = i
+                self.player.add(player(i))
+                break
     #va cham
     def va_cham(self):
         ds_va_cham=pygame.sprite.spritecollide(self.player.sprite,self.Quai,True)
