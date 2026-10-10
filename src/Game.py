@@ -6,6 +6,7 @@ from src.obstacle import obstacle
 from src.Bullet import Bullet
 from src.Sound import sound
 from src.CHAR_SELECT import char_select
+from src.Background import Background
 pygame.init()
 
 
@@ -20,14 +21,15 @@ class Game:
         # them nguoi choi
         self.player =pygame.sprite.GroupSingle()
         self.player.add(player(0))
-
-        # them quai
+        #background
+        self.background = Background()
+        ##### them quai
         self.SPAWM= pygame.USEREVENT+1
         pygame.time.set_timer(self.SPAWM,300)
         self.Quai=pygame.sprite.Group()
         #am thanh
         self.sound=sound()
-        #bullet
+        #####bullet
         self.bullet=pygame.sprite.Group()
         self.SPAWM_bullet=pygame.USEREVENT+2
         pygame.time.set_timer(self.SPAWM_bullet,300)
@@ -61,7 +63,7 @@ class Game:
         ds_va_cham=pygame.sprite.spritecollide(self.player.sprite,self.Quai,True)
         if ds_va_cham:
             self.sound.play_explosion()
-            self.running=False
+            #self.running=False
 
     def ban_dan(self):
         # ds=pygame.sprite.groupcollide(self.bullet,self.Quai,True,True)
@@ -81,8 +83,8 @@ class Game:
                     if self.state == "MENU": self.su_kien_menu(event)
                     if self.state == "CHAR_SELECT": self.su_kien_char_select(event)
                 if self.state == "PLAY":
-                    if event.type == self.SPAWM:
-                        self.Quai.add(obstacle(choice(["down","sin"])))
+                    #if event.type == self.SPAWM:
+                        # self.Quai.add(obstacle(choice(["down","sin"])))
                     if event.type == self.SPAWM_bullet:
                         self.sound.play_shot()
                         self.bullet.add(Bullet(self.player.sprite))
@@ -94,6 +96,8 @@ class Game:
             elif self.state == "CHAR_SELECT":
                 self.char_select.run()
             else :
+                self.background.update()
+                self.background.draw(self.screen)
                 self.player.update()
                 self.player.draw(self.screen)
                 self.Quai.update()
