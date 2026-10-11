@@ -34,17 +34,25 @@ class Game:
         self.bullet = pygame.sprite.Group()
         self.SPAWM_bullet = pygame.USEREVENT + 2
         pygame.time.set_timer(self.SPAWM_bullet, 300)
-        # Laser tu dong ban lien tuc
+        # Laser
         self.laser = pygame.sprite.GroupSingle()
-        self.laser.add(LaserBeam(self.player.sprite))
-        # Che do vu khi: "LASER" (mac dinh) hoac "BULLET" (Nhan phim 1 / 2 de doi)
-        self.weapon_type = "LASER"
+        self.cap_nhat_vu_khi()
+
         #chon nhan vat
         self.char_select = char_select(self.screen)
         self.boss_group = pygame.sprite.Group()
         self.boss_group.add(Boss1())
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
+
+    def cap_nhat_vu_khi(self):
+        """Cập nhật loại vũ khí theo phi thuyền hiện tại"""
+        p = self.player.sprite
+        if p and p.weapon_type == "LASER":
+            self.laser.empty()
+            self.laser.add(LaserBeam(p, color=p.laser_color))
+        else:
+            self.laser.empty()
 
     def su_kien_menu(self, event):
         """Hàm xử lý riêng các click chuột khi đang ở MENU"""
@@ -66,7 +74,7 @@ class Game:
             if self.char_select.players[i][2].collidepoint(event.pos):
                 self.char_select.selected = i
                 self.player.add(player(i))
-                self.laser.add(LaserBeam(self.player.sprite))
+                self.cap_nhat_vu_khi()
                 break
 
     #va cham
@@ -77,13 +85,18 @@ class Game:
             #self.running=False
 
     def ban_dan(self):
-        # 1. Đạn thường bắn trúng quái
-        ds = pygame.sprite.groupcollide(self.bullet, self.Quai, True, True)
-        if ds:
-            self.sound.play_explosion()
+        p = self.player.sprite
+        if not p:
+            return
 
-        # 2. Tia Laze quét trúng quái 
-        if self.weapon_type == "LASER" and self.laser.sprite:
+        # 1. Đạn thường bắn trúng quái
+        if p.weapon_type == "BULLET":
+            ds = pygame.sprite.groupcollide(self.bullet, self.Quai, True, True)
+            if ds:
+                self.sound.play_explosion()
+
+        # 2. Tia Laze quét trúng quái
+        elif p.weapon_type == "LASER" and self.laser.sprite:
             ds_laser = pygame.sprite.spritecollide(self.laser.sprite, self.Quai, True)
             if ds_laser:
                 self.sound.play_explosion()
@@ -96,12 +109,6 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                # 1: Đạn thường,2: Laser
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_1:
-                        self.weapon_type = "BULLET"
-                    elif event.key == pygame.K_2:
-                        self.weapon_type = "LASER"
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     # Chuyển hướng sự kiện tùy theo trạng thái game
@@ -111,7 +118,7 @@ class Game:
                 if self.state == "PLAY":
                     if event.type == self.SPAWM:
                         self.Quai.add(obstacle(choice(["down", "sin"])))
-                    if event.type == self.SPAWM_bullet and self.weapon_type == "BULLET":
+                    if event.type == self.SPAWM_bullet and self.player.sprite.weapon_type == "BULLET":
                         self.sound.play_shot()
                         self.bullet.add(Bullet(self.player.sprite))
 
@@ -135,8 +142,8 @@ class Game:
                     boss.bullets.draw(self.screen)
                 self.va_cham()
 
-                # Cập nhật và vẽ vũ khí đang chọn
-                if self.weapon_type == "LASER":
+                # Cập nhật và vẽ vũ khí của phi thuyền hiện tại
+                if self.player.sprite.weapon_type == "LASER":
                     self.laser.update()
                     self.laser.draw(self.screen)
                 else:
@@ -144,6 +151,7 @@ class Game:
                     self.bullet.draw(self.screen)
 
                 self.ban_dan()
+
 
 
             # --- 3. CẬP NHẬT FRAME ---

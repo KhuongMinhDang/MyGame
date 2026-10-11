@@ -10,6 +10,19 @@ class player(pygame.sprite.Sprite):
             ]
         self.image=self.image_ship[x]
         self.rect=self.image.get_rect(center=(400,600))
+        self.ship_id = x
+
+        # Gán loại đạn riêng cho từng phi thuyền
+        if x == 1:
+            self.weapon_type = "LASER"
+            self.laser_color = (255, 60, 60) 
+        elif x == 3:
+            self.weapon_type = "LASER"
+            self.laser_color = (0 , 255, 0)
+        else:
+            self.weapon_type = "BULLET"
+            self.laser_color = None
+
     def update(self):
         # Di chuyen va dieu chinh toa do player (ho tro ca WASD va phim Mui ten)
         key = pygame.key.get_pressed()
