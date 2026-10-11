@@ -7,6 +7,7 @@ from src.Bullet import Bullet, LaserBeam
 from src.Sound import sound
 from src.CHAR_SELECT import char_select
 from src.Background import Background
+from src.Boss import Boss1,BossBullet
 pygame.init()
 
 
@@ -40,6 +41,8 @@ class Game:
         self.weapon_type = "LASER"
         #chon nhan vat
         self.char_select = char_select(self.screen)
+        self.boss_group = pygame.sprite.Group()
+        self.boss_group.add(Boss1())
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
 
@@ -125,6 +128,11 @@ class Game:
                 self.player.draw(self.screen)
                 self.Quai.update()
                 self.Quai.draw(self.screen)
+                self.boss_group.update()
+                self.boss_group.draw(self.screen)
+                for boss in self.boss_group:
+                    boss.bullets.update()       
+                    boss.bullets.draw(self.screen)
                 self.va_cham()
 
                 # Cập nhật và vẽ vũ khí đang chọn
