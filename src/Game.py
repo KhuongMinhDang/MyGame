@@ -3,7 +3,7 @@ from random import choice
 from src.Giao_dien import giao_dien
 from src.Player import player
 from src.obstacle import obstacle
-from src.Bullet import Bullet, LaserBeam
+from src.Bullet import bullet_list
 from src.Sound import sound
 from src.CHAR_SELECT import char_select
 from src.Background import Background
@@ -19,14 +19,15 @@ class Game:
 
         self.menu = giao_dien(self.screen)
         self.state = "MENU"
-        # them nguoi choi
+        # them nguoi choi (mac dinh la player 0)
+        self.selected_player_id = 0
         self.player = pygame.sprite.GroupSingle()
-        self.player.add(player(0))
+        self.player.add(player(self.selected_player_id))
         #background
         self.background = Background()
         ##### them quai
-        self.SPAWM = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.SPAWM, 300)
+        #self.SPAWM = pygame.USEREVENT + 1
+        #pygame.time.set_timer(self.SPAWM, 300)
         self.Quai = pygame.sprite.Group()
         #am thanh
         self.sound = sound()
@@ -36,7 +37,9 @@ class Game:
         pygame.time.set_timer(self.SPAWM_bullet, 300)
         # Laser
         self.laser = pygame.sprite.GroupSingle()
-        self.cap_nhat_vu_khi()
+
+        # Gan loai dan bullet_list[0] tuong ung voi player 0
+        self.cap_nhat_vu_khi(self.selected_player_id)
 
         #chon nhan vat
         self.char_select = char_select(self.screen)
@@ -45,25 +48,26 @@ class Game:
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
 
-    def cap_nhat_vu_khi(self):
-        """Cập nhật loại vũ khí theo phi thuyền hiện tại"""
-        p = self.player.sprite
-        if p and p.weapon_type == "LASER":
+    def cap_nhat_vu_khi(self, ship_id):
+        """player[i] se tu dong di chung voi bullet_list[i]"""
+        self.selected_player_id = ship_id
+        weapon_cls = bullet_list[ship_id]
+        if weapon_cls.kind == "LASER":
             self.laser.empty()
-            self.laser.add(LaserBeam(p, color=p.laser_color))
+            self.laser.add(weapon_cls(self.player.sprite))
         else:
             self.laser.empty()
 
     def su_kien_menu(self, event):
         """Hàm xử lý riêng các click chuột khi đang ở MENU"""
-        if self.menu.buttons[0][0].collidepoint(event.pos):
+        if self.menu.buttons[0][1].collidepoint(event.pos):
             print("Chuyển sang màn hình chọn nhân vật!")
             self.state = "CHAR_SELECT"  # Cập nhật trạng thái!
 
-        elif self.menu.buttons[1][0].collidepoint(event.pos):
+        elif self.menu.buttons[1][1].collidepoint(event.pos):
             print("Mở Setting")
 
-        elif self.menu.buttons[2][0].collidepoint(event.pos):
+        elif self.menu.buttons[2][1].collidepoint(event.pos):
             print("Exit")
             self.running = False  # Tắt game
 
@@ -74,8 +78,11 @@ class Game:
             if self.char_select.players[i][2].collidepoint(event.pos):
                 self.char_select.selected = i
                 self.player.add(player(i))
-                self.cap_nhat_vu_khi()
+                # Khi chon player[i], tu dong gan dan bullet_list[i]
+                self.cap_nhat_vu_khi(i)
                 break
+        if self.char_select.back_rect.collidepoint(event.pos):
+            self.state = "MENU"
 
     #va cham
     def va_cham(self):
@@ -85,18 +92,16 @@ class Game:
             #self.running=False
 
     def ban_dan(self):
-        p = self.player.sprite
-        if not p:
-            return
+        weapon_cls = bullet_list[self.selected_player_id]
 
         # 1. Đạn thường bắn trúng quái
-        if p.weapon_type == "BULLET":
+        if weapon_cls.kind == "BULLET":
             ds = pygame.sprite.groupcollide(self.bullet, self.Quai, True, True)
             if ds:
                 self.sound.play_explosion()
 
         # 2. Tia Laze quét trúng quái
-        elif p.weapon_type == "LASER" and self.laser.sprite:
+        elif weapon_cls.kind == "LASER" and self.laser.sprite:
             ds_laser = pygame.sprite.spritecollide(self.laser.sprite, self.Quai, True)
             if ds_laser:
                 self.sound.play_explosion()
@@ -116,11 +121,12 @@ class Game:
                     if self.state == "CHAR_SELECT": self.su_kien_char_select(event)
 
                 if self.state == "PLAY":
-                    if event.type == self.SPAWM:
-                        self.Quai.add(obstacle(choice(["down", "sin"])))
-                    if event.type == self.SPAWM_bullet and self.player.sprite.weapon_type == "BULLET":
+                    #if event.type == self.SPAWM:
+                        #self.Quai.add(obstacle(choice(["down", "sin"])))
+                    weapon_cls = bullet_list[self.selected_player_id]
+                    if event.type == self.SPAWM_bullet and weapon_cls.kind == "BULLET":
                         self.sound.play_shot()
-                        self.bullet.add(Bullet(self.player.sprite))
+                        self.bullet.add(weapon_cls(self.player.sprite))
 
             # --- 2. PHẦN CẬP NHẬT LOGIC VÀ VẼ LÊN MÀN HÌNH ---
             if self.state == "MENU":
@@ -131,19 +137,23 @@ class Game:
             else:
                 self.background.update()
                 self.background.draw(self.screen)
+
                 self.player.update()
                 self.player.draw(self.screen)
-                self.Quai.update()
-                self.Quai.draw(self.screen)
+
+                #self.Quai.update()
+                #self.Quai.draw(self.screen)
                 self.boss_group.update()
                 self.boss_group.draw(self.screen)
                 for boss in self.boss_group:
                     boss.bullets.update()       
                     boss.bullets.draw(self.screen)
+
                 self.va_cham()
 
-                # Cập nhật và vẽ vũ khí của phi thuyền hiện tại
-                if self.player.sprite.weapon_type == "LASER":
+                # Cập nhật và vẽ vũ khí tương ứng của player[i]
+                weapon_cls = bullet_list[self.selected_player_id]
+                if weapon_cls.kind == "LASER":
                     self.laser.update()
                     self.laser.draw(self.screen)
                 else:

@@ -1,30 +1,25 @@
 import pygame
+
+
 class player(pygame.sprite.Sprite):
-    def __init__(self,x):
+    def __init__(self, x=0):
         super().__init__()
-        self.image_ship=[
+        self.ship_id = x
+
+        # 1. Quản lý hình ảnh phi thuyền
+        self.image_ship = [
             pygame.image.load('asset/image/SpaceShips/Ship_1.png').convert_alpha(),
             pygame.image.load('asset/image/SpaceShips/Ship_2.png').convert_alpha(),
             pygame.image.load('asset/image/SpaceShips/Ship_3.png').convert_alpha(),
             pygame.image.load('asset/image/SpaceShips/Ship_4.png').convert_alpha()
-            ]
-        self.image=self.image_ship[x]
-        self.rect=self.image.get_rect(center=(400,600))
-        self.ship_id = x
-
-        # Gán loại đạn riêng cho từng phi thuyền
-        if x == 1:
-            self.weapon_type = "LASER"
-            self.laser_color = (255, 60, 60) 
-        elif x == 3:
-            self.weapon_type = "LASER"
-            self.laser_color = (0 , 255, 0)
-        else:
-            self.weapon_type = "BULLET"
-            self.laser_color = None
+        ]
+        self.image = self.image_ship[x]
+        w, h = self.image.get_size()
+        self.image = pygame.transform.scale(self.image, (int(w * 1.5), int(h * 1.5)))
+        self.rect = self.image.get_rect(center=(400, 600))
 
     def update(self):
-        # Di chuyen va dieu chinh toa do player (ho tro ca WASD va phim Mui ten)
+        # 2. Quản lý chuyển động phi thuyền (WASD và Phím Mũi tên)
         key = pygame.key.get_pressed()
         if key[pygame.K_a] or key[pygame.K_LEFT]:
             self.rect.x -= 5
@@ -38,5 +33,3 @@ class player(pygame.sprite.Sprite):
         if key[pygame.K_s] or key[pygame.K_DOWN]:
             self.rect.y += 5
             if self.rect.bottom >= 750: self.rect.bottom = 750
-
-
