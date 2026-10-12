@@ -25,8 +25,8 @@ class Game:
         #background
         self.background = Background()
         ##### them quai
-        self.SPAWM = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.SPAWM, 300)
+        #self.SPAWM = pygame.USEREVENT + 1
+        #pygame.time.set_timer(self.SPAWM, 300)
         self.Quai = pygame.sprite.Group()
         #am thanh
         self.sound = sound()
@@ -48,14 +48,14 @@ class Game:
 
     def su_kien_menu(self, event):
         """Hàm xử lý riêng các click chuột khi đang ở MENU"""
-        if self.menu.buttons[0][0].collidepoint(event.pos):
+        if self.menu.buttons[0][1].collidepoint(event.pos):
             print("Chuyển sang màn hình chọn nhân vật!")
             self.state = "CHAR_SELECT"  # Cập nhật trạng thái!
 
-        elif self.menu.buttons[1][0].collidepoint(event.pos):
+        elif self.menu.buttons[1][1].collidepoint(event.pos):
             print("Mở Setting")
 
-        elif self.menu.buttons[2][0].collidepoint(event.pos):
+        elif self.menu.buttons[2][1].collidepoint(event.pos):
             print("Exit")
             self.running = False  # Tắt game
 
@@ -68,7 +68,8 @@ class Game:
                 self.player.add(player(i))
                 self.laser.add(LaserBeam(self.player.sprite))
                 break
-
+        if self.char_select.back_rect.collidepoint(event.pos):
+            self.state = "MENU"
     #va cham
     def va_cham(self):
         ds_va_cham = pygame.sprite.spritecollide(self.player.sprite, self.Quai, True)
@@ -109,8 +110,8 @@ class Game:
                     if self.state == "CHAR_SELECT": self.su_kien_char_select(event)
 
                 if self.state == "PLAY":
-                    if event.type == self.SPAWM:
-                        self.Quai.add(obstacle(choice(["down", "sin"])))
+                    #if event.type == self.SPAWM:
+                        #self.Quai.add(obstacle(choice(["down", "sin"])))
                     if event.type == self.SPAWM_bullet and self.weapon_type == "BULLET":
                         self.sound.play_shot()
                         self.bullet.add(Bullet(self.player.sprite))
@@ -124,15 +125,18 @@ class Game:
             else:
                 self.background.update()
                 self.background.draw(self.screen)
+
                 self.player.update()
                 self.player.draw(self.screen)
-                self.Quai.update()
-                self.Quai.draw(self.screen)
+
+                #self.Quai.update()
+                #self.Quai.draw(self.screen)
                 self.boss_group.update()
                 self.boss_group.draw(self.screen)
                 for boss in self.boss_group:
                     boss.bullets.update()       
                     boss.bullets.draw(self.screen)
+
                 self.va_cham()
 
                 # Cập nhật và vẽ vũ khí đang chọn

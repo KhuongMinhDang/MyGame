@@ -9,6 +9,8 @@ class player(pygame.sprite.Sprite):
             pygame.image.load('asset/image/SpaceShips/Ship_4.png').convert_alpha()
             ]
         self.image=self.image_ship[x]
+        w, h = self.image.get_size()
+        self.image = pygame.transform.scale(self.image, (int(w * 1.5), int(h * 1.5)))
         self.rect=self.image.get_rect(center=(400,600))
     def update(self):
         # Di chuyen va dieu chinh toa do player (ho tro ca WASD va phim Mui ten)
