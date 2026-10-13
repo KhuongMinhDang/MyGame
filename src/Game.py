@@ -7,7 +7,8 @@ from src.Bullet import bullet_list
 from src.Sound import sound
 from src.CHAR_SELECT import char_select
 from src.Background import Background
-from src.Boss import Boss1,BossBullet
+from src.Boss import Boss
+from src.BossBullet import boss_bullet_list
 pygame.init()
 
 
@@ -43,8 +44,8 @@ class Game:
 
         #chon nhan vat
         self.char_select = char_select(self.screen)
-        self.boss_group = pygame.sprite.Group()
-        self.boss_group.add(Boss1())
+        self.boss_group = pygame.sprite.GroupSingle()
+        self.boss_group.add(Boss(0))
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
 
@@ -90,6 +91,12 @@ class Game:
         if ds_va_cham:
             self.sound.play_explosion()
             #self.running=False
+        for boss in self.boss_group:
+            # Tham số True ở cuối có nghĩa là: Khi đạn chạm vào Player, viên đạn đó sẽ tự động biến mất (bị kill)
+            dan_trung_player = pygame.sprite.spritecollide(self.player.sprite, boss.bullets, True)
+            if dan_trung_player:
+                print("dinhdan")
+                self.running=False
 
     def ban_dan(self):
         weapon_cls = bullet_list[self.selected_player_id]
