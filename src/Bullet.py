@@ -2,7 +2,7 @@ import pygame
 import math
 
 
-# --- 1. LỚP ĐẠN THƯỜNG (Quản lý hình ảnh và quỹ đạo bay thẳng) ---
+# 1. LỚP ĐẠN THƯỜNG 
 class Bullet(pygame.sprite.Sprite):
     kind = "BULLET"
 
@@ -20,7 +20,7 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 
-# --- 2. LỚP TIA LAZE (Quản lý hình ảnh dải sáng và quỹ đạo bám theo tàu) ---
+# 2. LỚP TIA LAZE 
 class LaserBeam(pygame.sprite.Sprite):
     kind = "LASER"
 
@@ -63,6 +63,47 @@ class LaserBeam(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(midbottom=self.player.rect.midtop)
 
+# 3. LỚP ĐẠN NẢY
+class BouncingBullet(pygame.sprite.Sprite):
+    def __init__(self, pos, speed_x, speed_y, color=(255, 140, 0), size=(12, 20)):
+        super().__init__()
+        self.speed_x = speed_x
+        self.speed_y = speed_y
+        self.color = color
+
+        # Tạo hình ảnh đạn hình elip phát sáng neon với lõi trắng
+        self.base_image = pygame.Surface(size, pygame.SRCALPHA)
+        pygame.draw.ellipse(self.base_image, (*color, 120), (0, 0, size[0], size[1]))
+        pygame.draw.ellipse(self.base_image, color, (1, 2, size[0] - 2, size[1] - 4))
+        pygame.draw.ellipse(self.base_image, (255, 255, 255), (3, 4, size[0] - 6, size[1] - 8))
+
+        self.rect = self.base_image.get_rect(center=pos)
+        self.update_image()
+
+    def update_image(self):
+        # Xoay hình ảnh đạn hướng theo vector vận tốc
+        angle = -math.degrees(math.atan2(self.speed_x, -self.speed_y))
+        old_center = self.rect.center
+        self.image = pygame.transform.rotate(self.base_image, angle)
+        self.rect = self.image.get_rect(center=old_center)
+
+    def update(self):
+        self.rect.x += self.speed_x
+        self.rect.y += self.speed_y
+
+        # Nảy khi chạm mép trái (0) hoặc mép phải (800)
+        if self.rect.left <= 0:
+            self.rect.left = 0
+            self.speed_x = abs(self.speed_x)
+            self.update_image()
+        elif self.rect.right >= 800:
+            self.rect.right = 800
+            self.speed_x = -abs(self.speed_x)
+            self.update_image()
+
+        # Tự hủy khi bay ra khỏi mép trên màn hình
+        if self.rect.bottom < -10:
+            self.kill()
 
 # --- 3. ĐỊNH NGHĨA CÁC LOẠI ĐẠN CỤ THỂ ---
 class NormalBullet(Bullet):
@@ -77,26 +118,36 @@ class RedLaser(LaserBeam):
         super().__init__(player, base_width=14, color=(255, 60, 60))
 
 
-class YellowBullet(Bullet):
-    """Đạn năng lượng màu vàng bay thẳng"""
-    def __init__(self, player):
-        super().__init__(player, color=(255, 230, 50), speed=12)
-
-
 class GreenLaser(LaserBeam):
     """Tia Laze Xanh lá chiếu liên tục"""
     def __init__(self, player):
         super().__init__(player, base_width=14, color=(0, 255, 0))
 
 
+class BounceTripleBullet:
+    """Loại đạn bắn 3 viên: 1 viên thẳng và 2 viên chéo nảy ở 2 rìa màn hình"""
+    kind = "BULLET"
+
+    def __new__(cls, player):
+        pos = player.rect.midtop
+        # 1 viên thẳng ở giữa
+        b_mid = BouncingBullet(pos, speed_x=0, speed_y=-11, color=(255, 220, 0))
+        # 1 viên chéo sang trái (nảy khi chạm rìa trái)
+        b_left = BouncingBullet(pos, speed_x=-9.5, speed_y=-4.5, color=(255, 130, 0))
+        # 1 viên chéo sang phải (nảy khi chạm rìa phải)
+        b_right = BouncingBullet(pos, speed_x=9.5, speed_y=-4.5, color=(255, 130, 0))
+        return [b_mid, b_left, b_right]
+
+
 # --- 4. DANH SÁCH CÁC LOẠI ĐẠN ĐI CÙNG TỪNG PLAYER ---
 # player[0] -> bullet_list[0] (Đạn thường trắng)
 # player[1] -> bullet_list[1] (Laze Đỏ)
-# player[2] -> bullet_list[2] (Đạn vàng)
+# player[2] -> bullet_list[2] (Đạn 3 tia: thẳng + 2 tia chéo nảy tường)
 # player[3] -> bullet_list[3] (Laze Xanh)
 bullet_list = [
     NormalBullet,
     RedLaser,
-    YellowBullet,
+    BounceTripleBullet,
     GreenLaser
 ]
+
