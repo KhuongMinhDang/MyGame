@@ -45,7 +45,7 @@ class Game:
         #chon nhan vat
         self.char_select = char_select(self.screen)
         self.boss_group = pygame.sprite.GroupSingle()
-        self.boss_group.add(Boss(0))
+        self.boss_group.add(Boss(1))
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
 
@@ -96,7 +96,7 @@ class Game:
             dan_trung_player = pygame.sprite.spritecollide(self.player.sprite, boss.bullets, True)
             if dan_trung_player:
                 print("dinhdan")
-                self.running=False
+                #self.running=False
 
     def ban_dan(self):
         weapon_cls = bullet_list[self.selected_player_id]
@@ -150,7 +150,8 @@ class Game:
 
                 #self.Quai.update()
                 #self.Quai.draw(self.screen)
-                self.boss_group.update()
+                if self.player.sprite:
+                    self.boss_group.update(self.player.sprite)
                 self.boss_group.draw(self.screen)
                 for boss in self.boss_group:
                     boss.bullets.update()       
