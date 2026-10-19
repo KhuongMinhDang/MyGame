@@ -1,5 +1,8 @@
 import pygame
 from random import choice
+
+from pygame.display import update
+
 from src.Giao_dien import giao_dien
 from src.Player import player
 from src.obstacle import obstacle
@@ -9,6 +12,7 @@ from src.CHAR_SELECT import char_select
 from src.Background import Background
 from src.Boss import Boss
 from src.BossBullet import boss_bullet_list
+from src.Pause import Pause
 pygame.init()
 
 
@@ -17,6 +21,8 @@ class Game:
         self.screen = pygame.display.set_mode((800, 750))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("MY GAME")
+        #pause
+        self.Pause = Pause(self.screen)
 
         self.menu = giao_dien(self.screen)
         self.state = "MENU"
@@ -48,6 +54,8 @@ class Game:
         self.boss_group.add(Boss(1))
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
+        #luu lai man hinh
+        self.pause_background = None
 
     def cap_nhat_vu_khi(self, ship_id):
         """player[i] se tu dong di chung voi bullet_list[i]"""
@@ -84,6 +92,35 @@ class Game:
                 break
         if self.char_select.back_rect.collidepoint(event.pos):
             self.state = "MENU"
+
+    def restart_game(self):
+        # Dat lai nguoi choi
+        self.player.empty()
+        self.player.add(player(self.selected_player_id))
+        # Xoa dan cu
+        self.bullet.empty()
+        self.laser.empty()
+        # Tao lai boss
+        self.boss_group.empty()
+        self.boss_group.add(Boss(1))
+        # Xoa quai cu
+        self.Quai.empty()
+        # Dat lai background
+        self.background = Background()
+        # Cap nhat vu khi theo nhan vat hien tai
+        self.cap_nhat_vu_khi(self.selected_player_id)
+        # Chuyen ve man choi
+        self.state = "PLAY"
+    def su_kien_pause(self,event):
+        if self.background.nut_pause_rect.collidepoint(event.pos) and self.state=="PLAY":
+            self.state = "PAUSE"
+        if self.state=="PAUSE":
+            if self.Pause.buttons[0][1].collidepoint(event.pos):
+                self.state = "PLAY"
+            if self.Pause.buttons[1][1].collidepoint(event.pos):
+                self.restart_game()
+            if self.Pause.buttons[2][1].collidepoint(event.pos):
+                self.state = "CHAR_SELECT"
 
     #va cham
     def va_cham(self):
@@ -126,7 +163,8 @@ class Game:
                     # Chuyển hướng sự kiện tùy theo trạng thái game
                     if self.state == "MENU": self.su_kien_menu(event)
                     if self.state == "CHAR_SELECT": self.su_kien_char_select(event)
-
+                    if self.state == "PLAY": self.su_kien_pause(event)
+                    if self.state == "PAUSE": self.su_kien_pause(event)
                 if self.state == "PLAY":
                     #if event.type == self.SPAWM:
                         #self.Quai.add(obstacle(choice(["down", "sin"])))
@@ -134,6 +172,10 @@ class Game:
                     if event.type == self.SPAWM_bullet and weapon_cls.kind == "BULLET":
                         self.sound.play_shot()
                         self.bullet.add(weapon_cls(self.player.sprite))
+                    #nhan pause
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            self.state = "PAUSE"
 
             # --- 2. PHẦN CẬP NHẬT LOGIC VÀ VẼ LÊN MÀN HÌNH ---
             if self.state == "MENU":
@@ -141,7 +183,7 @@ class Game:
 
             elif self.state == "CHAR_SELECT":
                 self.char_select.run()
-            else:
+            elif self.state == "PLAY":
                 self.background.update()
                 self.background.draw(self.screen)
 
@@ -169,7 +211,11 @@ class Game:
                     self.bullet.draw(self.screen)
 
                 self.ban_dan()
-
+                self.pause_background = self.screen.copy()
+            elif self.state == "PAUSE":
+                if self.pause_background is not None:
+                    self.screen.blit(self.pause_background, (0, 0))
+                self.Pause.update()
 
 
             # --- 3. CẬP NHẬT FRAME ---

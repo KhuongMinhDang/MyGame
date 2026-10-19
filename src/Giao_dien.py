@@ -3,7 +3,6 @@ import pygame
 class giao_dien:
     def __init__(self, screen):
         self.screen = screen
-
         # Load anh nen
         self.nen = pygame.image.load('asset/image/ui/haha.jpg').convert_alpha()
         #.nen = pygame.transform.scale(self.nen, (800, 800))

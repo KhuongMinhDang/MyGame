@@ -5,6 +5,10 @@ class Background:
     def __init__(self):
         self.width = 800
         self.height = 750
+        #nut pause
+        self.nut_pause = pygame.image.load("asset/image/ui/nut_pause.png").convert_alpha()
+        self.nut_pause = pygame.transform.scale(self.nut_pause, (100, 100))
+        self.nut_pause_rect = self.nut_pause.get_rect(center=(770, 720))
         # Background tinh
         self.background=pygame.image.load("asset/image/Background/backgound.png").convert()
         self.background = pygame.transform.scale( self.background, (self.width, self.height) )
@@ -66,3 +70,4 @@ class Background:
         #cac hanh tinh
         for planet in self.planets:
             screen.blit(planet["image"],(planet["x"],planet["y"]))
+        screen.blit(self.nut_pause,self.nut_pause_rect)
