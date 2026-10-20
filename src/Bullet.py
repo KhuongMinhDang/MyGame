@@ -105,11 +105,30 @@ class BouncingBullet(pygame.sprite.Sprite):
         if self.rect.bottom < -10:
             self.kill()
 
-# --- 3. ĐỊNH NGHĨA CÁC LOẠI ĐẠN CỤ THỂ ---
+class ParallelBullet(pygame.sprite.Sprite):
+    """Từng viên đạn đơn trong cặp đạn song song"""
+    def __init__(self, pos, speed=11, color=(0, 230, 255), size=(10, 20)):
+        super().__init__()
+        self.speed = speed
+        self.image = pygame.Surface(size, pygame.SRCALPHA)
+        # Hào quang phát sáng neon ngoài
+        pygame.draw.ellipse(self.image, (*color, 120), (0, 0, size[0], size[1]))
+        # Thân đạn màu chính
+        pygame.draw.ellipse(self.image, color, (1, 2, size[0] - 2, size[1] - 4))
+        # Lõi trắng sáng ở giữa
+        pygame.draw.ellipse(self.image, (255, 255, 255), (3, 4, size[0] - 6, size[1] - 8))
+        self.rect = self.image.get_rect(center=pos)
+
+    def update(self):
+        self.rect.y -= self.speed
+        if self.rect.bottom < -10:
+            self.kill()
+
+# --- 4. ĐỊNH NGHĨA CÁC LOẠI ĐẠN CỤ THỂ ---
 class NormalBullet(Bullet):
-    """Đạn thường màu trắng bay thẳng"""
+    """Đạn thường màu xanh cyan bay thẳng"""
     def __init__(self, player):
-        super().__init__(player, color='white', speed=10)
+        super().__init__(player, color=(0, 255, 255), speed=10)
 
 
 class RedLaser(LaserBeam):
@@ -117,11 +136,6 @@ class RedLaser(LaserBeam):
     def __init__(self, player):
         super().__init__(player, base_width=14, color=(255, 60, 60))
 
-
-class GreenLaser(LaserBeam):
-    """Tia Laze Xanh lá chiếu liên tục"""
-    def __init__(self, player):
-        super().__init__(player, base_width=14, color=(0, 255, 0))
 
 
 class BounceTripleBullet:
@@ -139,15 +153,31 @@ class BounceTripleBullet:
         return [b_mid, b_left, b_right]
 
 
-# --- 4. DANH SÁCH CÁC LOẠI ĐẠN ĐI CÙNG TỪNG PLAYER ---
+
+class DualParallelBullet:
+    """Loại đạn bắn 2 viên bay song song từ 2 bên cánh phi thuyền"""
+    kind = "BULLET"
+
+    def __new__(cls, player, offset_x=22, speed=11, color=(0, 230, 255)):
+        center_x = player.rect.centerx
+        top_y = player.rect.top
+        # Viên cánh trái
+        b_left = ParallelBullet((center_x - offset_x, top_y + 10), speed=speed, color=color)
+        # Viên cánh phải
+        b_right = ParallelBullet((center_x + offset_x, top_y + 10), speed=speed, color=color)
+        return [b_left, b_right]
+
+
+# --- 5. DANH SÁCH CÁC LOẠI ĐẠN ĐI CÙNG TỪNG PLAYER ---
 # player[0] -> bullet_list[0] (Đạn thường trắng)
 # player[1] -> bullet_list[1] (Laze Đỏ)
 # player[2] -> bullet_list[2] (Đạn 3 tia: thẳng + 2 tia chéo nảy tường)
-# player[3] -> bullet_list[3] (Laze Xanh)
+# player[3] -> bullet_list[3] (Đạn đôi bay song song)
 bullet_list = [
     NormalBullet,
     RedLaser,
     BounceTripleBullet,
-    GreenLaser
+    DualParallelBullet
 ]
+
 
