@@ -107,7 +107,7 @@ class Game:
         self.laser.empty()
         # Tao lai boss
         self.boss_group.empty()
-        self.boss_group.add(Boss(1))
+        self.boss_group.add(Boss(self.char_select.selected_boss))
         # Xoa quai cu
         self.Quai.empty()
         # Dat lai background
@@ -115,7 +115,7 @@ class Game:
         # Cap nhat vu khi theo nhan vat hien tai
         self.cap_nhat_vu_khi(self.selected_player_id)
         # Chuyen ve man choi
-        self.state = "PLAY"
+        if(self.state=="PAUSE"): self.state = "PLAY"
     def su_kien_pause(self,event):
         if self.background.nut_pause_rect.collidepoint(event.pos) and self.state=="PLAY":
             self.state = "PAUSE"
@@ -136,6 +136,7 @@ class Game:
                 if(self.player.sprite.current_hp+1>3):
                     self.state = "CHAR_SELECT"
                     self.player.sprite.current_hp=0
+                    self.restart_game()
                 else:
                     self.player.sprite.current_hp+=1
                     self.sound.play_explosion()
