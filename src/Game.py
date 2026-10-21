@@ -92,6 +92,11 @@ class Game:
                 break
         if self.char_select.back_rect.collidepoint(event.pos):
             self.state = "MENU"
+        for i in range(2):
+            if self.char_select.bosses[i][2].collidepoint(event.pos):
+                self.char_select.selected_boss=i;
+                self.boss_group.add(Boss(i));
+                break;
 
     def restart_game(self):
         # Dat lai nguoi choi
@@ -124,16 +129,18 @@ class Game:
 
     #va cham
     def va_cham(self):
-        ds_va_cham = pygame.sprite.spritecollide(self.player.sprite, self.Quai, True)
-        if ds_va_cham:
-            self.sound.play_explosion()
-            #self.running=False
         for boss in self.boss_group:
             # Tham số True ở cuối có nghĩa là: Khi đạn chạm vào Player, viên đạn đó sẽ tự động biến mất (bị kill)
             dan_trung_player = pygame.sprite.spritecollide(self.player.sprite, boss.bullets, True)
             if dan_trung_player:
-                print("dinhdan")
-                #self.running=False
+                if(self.player.sprite.current_hp+1>3):
+                    self.state = "CHAR_SELECT"
+                    self.player.sprite.current_hp=0
+                else:
+                    self.player.sprite.current_hp+=1
+                    self.sound.play_explosion()
+                    print("dinhdan")
+                    #self.running=False
 
     def ban_dan(self):
         weapon_cls = bullet_list[self.selected_player_id]
@@ -187,12 +194,13 @@ class Game:
                 self.background.update()
                 self.background.draw(self.screen)
 
-                self.player.update()
+                self.player.update(self.screen)
                 self.player.draw(self.screen)
 
                 #self.Quai.update()
                 #self.Quai.draw(self.screen)
                 if self.player.sprite:
+                    self.player.sprite.update(self.screen)
                     self.boss_group.update(self.player.sprite)
                 self.boss_group.draw(self.screen)
                 for boss in self.boss_group:

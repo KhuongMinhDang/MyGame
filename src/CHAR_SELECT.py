@@ -4,16 +4,18 @@ import pygame
 class char_select:
     def __init__(self, screen):
         self.screen = screen
-        # 4 o boss
+        # 2 o boss
         self.bosses = []
-        for i in range(4):
-            image = pygame.Surface((250, 130))
-            image.fill('gray')
+        self.selected_boss = 0
+        for i in range(1, 3):
+            image = pygame.image.load(f"asset/image/SpaceShips/boss{i}.png").convert_alpha()
 
-            rect = image.get_rect(center=(250 + (i % 2) * 300,150 + (i // 2) * 160))
+            small = pygame.transform.scale(image, (280, 220))
+            big = pygame.transform.scale(image, (380, 310))
 
-            self.bosses.append((image, rect))
+            rect = small.get_rect(center=(250 + (i - 1) * 300, 250))
 
+            self.bosses.append((small, big, rect))
         # 4 may bay
         self.selected=0
         self.players = []
@@ -39,12 +41,31 @@ class char_select:
         self.background = pygame.image.load('asset/image/ui/background.webp').convert_alpha()
     def run(self):
         self.screen.blit(self.background, (0, 0))
-        # Ve 4 boss
-        for image, rect in self.bosses:
-            self.screen.blit(image, rect)
+        mouse_pos = pygame.mouse.get_pos()
+        # Ve 2 boss
+        for i, (small, big, rect) in enumerate(self.bosses):
+            if rect.collidepoint(mouse_pos):
+                image = big
+                draw_rect = image.get_rect(center=rect.center)
+            else:
+                image = small
+                draw_rect = rect
+
+            self.screen.blit(image, draw_rect)
+
+            # Tam giac chi vao boss dang chon
+            if i == self.selected_boss:
+                pygame.draw.polygon(
+                    self.screen,
+                    (255, 255, 255),
+                    [
+                        (rect.centerx - 8, rect.top - 20),
+                        (rect.centerx + 8, rect.top - 20),
+                        (rect.centerx, rect.top - 5)
+                    ]
+                )
 
         # Ve 4 may bay
-        mouse_pos = pygame.mouse.get_pos()
 
         for i, (small, big, rect) in enumerate(self.players):
 
@@ -72,8 +93,6 @@ class char_select:
         # Ve nut PLAY va BACK
         self.screen.blit(self.play_image, self.play_rect)
         self.screen.blit(self.back, self.back_rect)
-
-        mouse_pos = pygame.mouse.get_pos()
 
         # Hien mui ten khi tro chuot vao nut BACK
         if self.back_rect.collidepoint(mouse_pos):
