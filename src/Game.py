@@ -5,7 +5,6 @@ from pygame.display import update
 
 from src.Giao_dien import giao_dien
 from src.Player import player
-from src.obstacle import obstacle
 from src.Bullet import bullet_list
 from src.Sound import sound
 from src.CHAR_SELECT import char_select
@@ -32,10 +31,6 @@ class Game:
         self.player.add(player(self.selected_player_id))
         #background
         self.background = Background()
-        ##### them quai
-        #self.SPAWM = pygame.USEREVENT + 1
-        #pygame.time.set_timer(self.SPAWM, 300)
-        self.Quai = pygame.sprite.Group()
         #am thanh
         self.sound = sound()
         #####bullet
@@ -48,8 +43,8 @@ class Game:
         # Gan loai dan bullet_list[0] tuong ung voi player 0
         self.cap_nhat_vu_khi(self.selected_player_id)
 
-        #chon nhan vat
         self.char_select = char_select(self.screen)
+        # chon boss
         self.boss_group = pygame.sprite.GroupSingle()
         self.boss_group.add(Boss(1))
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
@@ -108,8 +103,6 @@ class Game:
         # Tao lai boss
         self.boss_group.empty()
         self.boss_group.add(Boss(self.char_select.selected_boss))
-        # Xoa quai cu
-        self.Quai.empty()
         # Dat lai background
         self.background = Background()
         # Cap nhat vu khi theo nhan vat hien tai
@@ -143,21 +136,6 @@ class Game:
                     print("dinhdan")
                     #self.running=False
 
-    def ban_dan(self):
-        weapon_cls = bullet_list[self.selected_player_id]
-
-        # 1. Đạn thường bắn trúng quái
-        if weapon_cls.kind == "BULLET":
-            ds = pygame.sprite.groupcollide(self.bullet, self.Quai, True, True)
-            if ds:
-                self.sound.play_explosion()
-
-        # 2. Tia Laze quét trúng quái
-        elif weapon_cls.kind == "LASER" and self.laser.sprite:
-            ds_laser = pygame.sprite.spritecollide(self.laser.sprite, self.Quai, True)
-            if ds_laser:
-                self.sound.play_explosion()
-
     def run_game(self):
         while self.running:
             self.screen.fill((0, 0, 0))
@@ -174,10 +152,10 @@ class Game:
                     if self.state == "PLAY": self.su_kien_pause(event)
                     if self.state == "PAUSE": self.su_kien_pause(event)
                 if self.state == "PLAY":
-                    #if event.type == self.SPAWM:
-                        #self.Quai.add(obstacle(choice(["down", "sin"])))
                     weapon_cls = bullet_list[self.selected_player_id]
-                    if event.type == self.SPAWM_bullet and weapon_cls.kind == "BULLET":
+                    #chi boss xh moi ban
+                    boss = self.boss_group.sprite
+                    if event.type == self.SPAWM_bullet and weapon_cls.kind == "BULLET" and boss is not None and not boss.dang_bay:
                         self.sound.play_shot()
                         self.bullet.add(weapon_cls(self.player.sprite))
                     #nhan pause
@@ -198,8 +176,6 @@ class Game:
                 self.player.update(self.screen)
                 self.player.draw(self.screen)
 
-                #self.Quai.update()
-                #self.Quai.draw(self.screen)
                 if self.player.sprite:
                     self.player.sprite.update(self.screen)
                     self.boss_group.update(self.player.sprite)
@@ -219,7 +195,6 @@ class Game:
                     self.bullet.update()
                     self.bullet.draw(self.screen)
 
-                self.ban_dan()
                 self.pause_background = self.screen.copy()
             elif self.state == "PAUSE":
                 if self.pause_background is not None:
