@@ -23,6 +23,10 @@ class player(pygame.sprite.Sprite):
         w, h = self.image.get_size()
         self.image = pygame.transform.scale(self.image, (int(w * 1.5), int(h * 1.5)))
         self.rect = self.image.get_rect(center=(400, 600))
+        # Hitbox nhỏ ở giữa thân tàu (chỉnh 2 số này cho vừa ý)
+        HITBOX_W, HITBOX_H = 20, 20
+        self.hitbox = pygame.Rect(0, 0, HITBOX_W, HITBOX_H)
+        self.hitbox.center = self.rect.center
 
     def update(self,screen):
         # 2. Quản lý chuyển động phi thuyền (WASD và Phím Mũi tên)
@@ -39,6 +43,7 @@ class player(pygame.sprite.Sprite):
         if key[pygame.K_s] or key[pygame.K_DOWN]:
             self.rect.y += 3
             if self.rect.bottom >= 750: self.rect.bottom = 750
+        self.hitbox.center = self.rect.center
         # 2. Vẽ thanh HP góc dưới màn hình
         hp_image = self.hp[self.current_hp]
         screen.blit(hp_image, (0, 650))

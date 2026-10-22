@@ -126,12 +126,14 @@ class ParallelBullet(pygame.sprite.Sprite):
 
 # --- 4. ĐỊNH NGHĨA CÁC LOẠI ĐẠN CỤ THỂ ---
 class NormalBullet(Bullet):
+    damage=10
     """Đạn thường màu xanh cyan bay thẳng"""
     def __init__(self, player):
         super().__init__(player, color=(0, 255, 255), speed=10)
 
 
 class RedLaser(LaserBeam):
+    damage=10
     """Tia Laze Đỏ rực chiếu liên tục"""
     def __init__(self, player):
         super().__init__(player, base_width=14, color=(255, 60, 60))
@@ -141,7 +143,7 @@ class RedLaser(LaserBeam):
 class BounceTripleBullet:
     """Loại đạn bắn 3 viên: 1 viên thẳng và 2 viên chéo nảy ở 2 rìa màn hình"""
     kind = "BULLET"
-
+    damage=1.5
     def __new__(cls, player):
         pos = player.rect.midtop
         # 1 viên thẳng ở giữa
@@ -150,11 +152,15 @@ class BounceTripleBullet:
         b_left = BouncingBullet(pos, speed_x=-9.5, speed_y=-4.5, color=(255, 130, 0))
         # 1 viên chéo sang phải (nảy khi chạm rìa phải)
         b_right = BouncingBullet(pos, speed_x=9.5, speed_y=-4.5, color=(255, 130, 0))
+        b_mid.damage = 1.5
+        b_left.damage = 1.5
+        b_right.damage = 1.5
         return [b_mid, b_left, b_right]
 
 
 
 class DualParallelBullet:
+    damage=5
     """Loại đạn bắn 2 viên bay song song từ 2 bên cánh phi thuyền"""
     kind = "BULLET"
 
@@ -165,6 +171,9 @@ class DualParallelBullet:
         b_left = ParallelBullet((center_x - offset_x, top_y + 10), speed=speed, color=color)
         # Viên cánh phải
         b_right = ParallelBullet((center_x + offset_x, top_y + 10), speed=speed, color=color)
+        b_left.damage = 5
+        b_right.damage = 5
+
         return [b_left, b_right]
 
 

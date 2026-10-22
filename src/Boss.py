@@ -3,6 +3,7 @@ import random
 from src.BossBullet import boss_bullet_list
 from src.Boss_time import boss_time_list
 from src.Player import player
+from src.Sound import sound
 class Boss(pygame.sprite.Sprite):
     def __init__(self, boss_id=1):
         super().__init__()
@@ -14,7 +15,16 @@ class Boss(pygame.sprite.Sprite):
         ]
         self.image = self.image_boss[self.boss_id]
         self.rect = self.image.get_rect(midtop=(400, -200))
-        if self.boss_id==1: self.hp=1000
+        #am thanh
+        self.sound=sound()
+        # Hitbox nhỏ ở thân boss (chỉnh số cho vừa ý)
+        HITBOX_W, HITBOX_H = 150, 140
+        self.hitbox = pygame.Rect(0, 0, HITBOX_W, HITBOX_H)
+        self.hitbox.center = self.rect.center
+
+        if self.boss_id==0: self.hp=1500
+        else: self.hp=2000
+        self.max_hp = self.hp
         self.bullets = pygame.sprite.Group() # Nhóm chứa đạn của boss này
         self.dang_bay = True
         self.speed_x = 0
@@ -24,6 +34,7 @@ class Boss(pygame.sprite.Sprite):
     def luong_mau(self, damage):
         self.hp -= damage
         if self.hp <= 0:
+            self.sound.play_explosion()
             self.kill()
     def update(self,player):
         now = pygame.time.get_ticks()
@@ -69,3 +80,6 @@ class Boss(pygame.sprite.Sprite):
                 self.speed_x = random.choice([-4, -3, -2, 2, 3, 4])
                 self.move_timer = now
             self.co_che.update(now,player.rect.centerx,player.rect.centery)#luc ban dan
+
+        # Cập nhật hitbox theo rect (nằm ngoài if/else)
+        self.hitbox.center = self.rect.center

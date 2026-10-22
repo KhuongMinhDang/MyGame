@@ -120,18 +120,32 @@ class Game:
             if self.Pause.buttons[2][1].collidepoint(event.pos):
                 self.state = "CHAR_SELECT"
 
+    def trung_boss(self):
+        boss = self.boss_group.sprite
+
+        if boss is None:
+            return
+        dan_trung = pygame.sprite.spritecollide(boss, self.bullet, True,collided=lambda bo, d: bo.hitbox.colliderect(d.rect))
+        for dan in dan_trung:
+            boss.luong_mau(dan.damage)
+            print("Boss HP:", boss.hp)  # DEBUG: xoá khi xong
+            # Laser: trúng thì KHÔNG xoá (False), trừ máu mỗi frame
+        for tia in pygame.sprite.spritecollide(boss, self.laser, False, collided=lambda bo, d: bo.hitbox.colliderect(d.rect)):
+            boss.luong_mau(tia.damage)
+            print("Boss HP:", boss.hp)  # DEBUG: xoá khi xong
     #va cham
     def va_cham(self):
         for boss in self.boss_group:
             # Tham số True ở cuối có nghĩa là: Khi đạn chạm vào Player, viên đạn đó sẽ tự động biến mất (bị kill)
-            dan_trung_player = pygame.sprite.spritecollide(self.player.sprite, boss.bullets, True)
+            dan_trung_player = pygame.sprite.spritecollide(self.player.sprite, boss.bullets, True,
+                collided=lambda p, b: p.hitbox.colliderect(b.hitbox))
             if dan_trung_player:
-                if(self.player.sprite.current_hp+1>3):
-                    self.state = "CHAR_SELECT"
-                    self.player.sprite.current_hp=0
-                    self.restart_game()
-                else:
-                    self.player.sprite.current_hp+=1
+                #if(self.player.sprite.current_hp+1>3):
+                    #self.state = "CHAR_SELECT"
+                    #self.player.sprite.current_hp=0
+                   # self.restart_game()
+                #else:
+                   # self.player.sprite.current_hp+=1
                     self.sound.play_explosion()
                     print("dinhdan")
                     #self.running=False
@@ -175,17 +189,27 @@ class Game:
 
                 self.player.update(self.screen)
                 self.player.draw(self.screen)
+                pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.hitbox, 1)
 
-                if self.player.sprite:
-                    self.player.sprite.update(self.screen)
-                    self.boss_group.update(self.player.sprite)
+                self.boss_group.update(self.player.sprite)
                 self.boss_group.draw(self.screen)
                 for boss in self.boss_group:
                     boss.bullets.update()       
                     boss.bullets.draw(self.screen)
 
                 self.va_cham()
-
+                self.trung_boss()
+                # DEBUG: xoá khi chỉnh xong
+                pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.hitbox, 1)
+                for boss in self.boss_group:
+                    pygame.draw.rect(self.screen, (255, 255, 0), boss.hitbox, 1)
+                    for b in boss.bullets:
+                        pygame.draw.rect(self.screen, (0, 255, 0), b.hitbox, 1)
+                boss = self.boss_group.sprite
+                if boss:
+                    ty_le = max(boss.hp, 0) / boss.max_hp
+                    pygame.draw.rect(self.screen, (80, 0, 0), (150, 10, 500, 10))
+                    pygame.draw.rect(self.screen, (255, 0, 0), (150, 10, 500 * ty_le, 10))
                 # Cập nhật và vẽ vũ khí tương ứng của player[i]
                 weapon_cls = bullet_list[self.selected_player_id]
                 if weapon_cls.kind == "LASER":

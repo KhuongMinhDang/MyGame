@@ -3,7 +3,7 @@ import math
 import random
 
 class BossBulletBase(pygame.sprite.Sprite):
-    def __init__(self, x, y, speed_x, speed_y, image):
+    def __init__(self, x, y, speed_x, speed_y, image, hitbox_size=None):
         super().__init__()
         self.image = image
         self.rect = self.image.get_rect(center=(x, y))
@@ -11,6 +11,10 @@ class BossBulletBase(pygame.sprite.Sprite):
         self.y_float = float(y)
         self.speed_x = float(speed_x)
         self.speed_y = float(speed_y)
+        if hitbox_size is None:
+            hitbox_size = int(min(self.rect.size) * 0.5)
+        self.hitbox = pygame.Rect(0, 0, hitbox_size, hitbox_size)
+        self.hitbox.center = self.rect.center
     def update(self):
         self.x_float += self.speed_x
         self.y_float += self.speed_y
@@ -18,7 +22,7 @@ class BossBulletBase(pygame.sprite.Sprite):
         self.rect.centery = int(self.y_float)
         if self.rect.top > 750 or self.rect.bottom < 0 or self.rect.left > 800 or self.rect.right < 0:
             self.kill()
-
+        self.hitbox.center = self.rect.center
 class Boss1_Bullet(BossBulletBase):
     image_cache = {} 
     
@@ -42,6 +46,8 @@ class Boss1_Bullet(BossBulletBase):
             image_cuoi = image_goc
         super().__init__(x, y, speed_x, speed_y, image_cuoi)
 
+        hitbox_size = int(min(image_goc.get_size()) * 0.5)   # 0.5 = 50% cạnh ngắn của ảnh
+        super().__init__(x, y, speed_x, speed_y, image_cuoi, hitbox_size)
     @classmethod
     def basic_attack(cls, x, y):
         # Không truyền xoay_anh, mặc định là False
@@ -88,6 +94,8 @@ class Boss2_Bullet(BossBulletBase):
         else:
             image_cuoi = image_goc
         super().__init__(x, y, speed_x, speed_y, image_cuoi)
+        hitbox_size = int(min(image_goc.get_size()) * 0.5)   # 0.5 = 50% cạnh ngắn của ảnh
+        super().__init__(x, y, speed_x, speed_y, image_cuoi, hitbox_size)
     @classmethod
     def basic_attack(cls, x, y):
             # Không truyền xoay_anh, mặc định là False
