@@ -46,7 +46,7 @@ class Game:
         self.char_select = char_select(self.screen)
         # chon boss
         self.boss_group = pygame.sprite.GroupSingle()
-        self.boss_group.add(Boss(1))
+        self.boss_group.add(Boss(2))
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
         #luu lai man hinh
