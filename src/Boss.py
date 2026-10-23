@@ -11,7 +11,8 @@ class Boss(pygame.sprite.Sprite):
         #them anh boss vo day
         self.image_boss = [
             pygame.transform.scale(pygame.image.load('asset/image/SpaceShips/boss1.png').convert_alpha(),(289,216)),
-            pygame.transform.scale(pygame.image.load('asset/image/SpaceShips/boss2.png').convert_alpha(),(300,209))
+            pygame.transform.scale(pygame.image.load('asset/image/SpaceShips/boss2.png').convert_alpha(),(300,209)),
+            pygame.transform.scale(pygame.image.load('asset/image/SpaceShips/boss3.png').convert_alpha(),(289,216))
         ]
         self.image = self.image_boss[self.boss_id]
         self.rect = self.image.get_rect(midtop=(400, -200))

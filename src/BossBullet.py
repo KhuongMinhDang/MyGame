@@ -126,5 +126,59 @@ class Boss2_Bullet(BossBulletBase):
             speed_x = math.cos(radian) * toc_do
             speed_y = math.sin(radian) * toc_do
             return [cls(x, y, speed_x, speed_y, loaidan=loaidan, xoay_anh=True)]
+class Boss3_Bullet(BossBulletBase):
+    goc_xoay_xuan_oc = 0
+    image_cache = {}
 
-boss_bullet_list = [Boss1_Bullet,Boss2_Bullet]
+    def __init__(self, x, y, speed_x, speed_y, loaidan='dai', xoay_anh=False): 
+        if loaidan not in Boss3_Bullet.image_cache:
+            if loaidan == 'dai':
+                img = pygame.image.load("asset/image/ui/danboss1v2.png").convert_alpha()
+                Boss3_Bullet.image_cache['dai'] = pygame.transform.scale(img, (37, 80))
+            elif loaidan == 'tron':
+                img = pygame.image.load("asset/image/ui/dantron.png").convert_alpha()
+                Boss3_Bullet.image_cache['tron'] = pygame.transform.scale(img, (38, 38))
+                
+        image_goc = Boss3_Bullet.image_cache[loaidan]
+        
+        if xoay_anh:
+            goc_radian = math.atan2(-speed_y, speed_x)
+            goc_do = math.degrees(goc_radian)
+            goc_xoay = goc_do - 90 
+            image_cuoi = pygame.transform.rotate(image_goc, goc_xoay)
+        else:
+            image_cuoi = image_goc
+        hitbox_size = int(min(image_goc.get_size()) * 0.5)
+        super().__init__(x, y, speed_x, speed_y, image_cuoi, hitbox_size)
+
+    @classmethod
+    def basic_attack(cls, x, y):
+        # Không truyền xoay_anh, mặc định là False
+        return [cls(x, y, 0, 5, loaidan='dai')]
+
+    @classmethod
+    def special_attack1(cls, x, y, so_luong_tia=4, toc_do=5, loaidan='tron'):
+        bullets = []
+        goc_chia = 360 / so_luong_tia
+        cls.goc_xoay_xuan_oc += 15
+        
+        for i in range(so_luong_tia):
+            goc_hien_tai = cls.goc_xoay_xuan_oc + (i * goc_chia)
+            radian = math.radians(goc_hien_tai)
+            speed_x = math.cos(radian) * toc_do
+            speed_y = math.sin(radian) * toc_do
+            bullets.append(cls(x, y, speed_x, speed_y, loaidan=loaidan, xoay_anh=True))
+        return bullets
+
+    @classmethod
+    def special_attack2(cls, x, y, so_luong_moi_canh=5, spacing=25, toc_do=6, loaidan='dai'):
+        bullets = []
+        bullets.append(cls(x, y, speed_x=0, speed_y=toc_do, loaidan=loaidan, xoay_anh=True))
+        
+        for i in range(1, so_luong_moi_canh):
+            offset_x = i * spacing
+            offset_y = i * spacing 
+            bullets.append(cls(x - offset_x, y - offset_y, speed_x=0, speed_y=toc_do, loaidan=loaidan, xoay_anh=True))
+            bullets.append(cls(x + offset_x, y - offset_y, speed_x=0, speed_y=toc_do, loaidan=loaidan, xoay_anh=True))   
+        return bullets
+boss_bullet_list = [Boss1_Bullet, Boss2_Bullet, Boss3_Bullet]
