@@ -4,6 +4,7 @@ from src.BossBullet import boss_bullet_list
 from src.Boss_time import boss_time_list
 from src.Player import player
 from src.Sound import sound
+from src.Exp import Explosion
 class Boss(pygame.sprite.Sprite):
     def __init__(self, boss_id=1):
         super().__init__()
@@ -32,13 +33,35 @@ class Boss(pygame.sprite.Sprite):
         self.speed_y = 4
         self.move_timer = pygame.time.get_ticks() 
         self.co_che=boss_time_list[self.boss_id](self)
+        #boss dang no
+        self.explosions_group = pygame.sprite.Group()
+        self.is_dying = False
+        self.death_timer = 0
+        self.last_explosion_time = 0
     def luong_mau(self, damage):
-        self.hp -= damage
-        if self.hp <= 0:
-            self.sound.play_explosion()
-            self.kill()
+        if not self.is_dying: # Chặn không cho trừ máu tiếp khi đang hấp hối
+            self.hp -= damage
+            if self.hp <= 0:
+                self.is_dying = True
+                self.death_timer = pygame.time.get_ticks()
+                self.sound.play_explosion()
     def update(self,player):
         now = pygame.time.get_ticks()
+        if self.is_dying:
+            # Cứ 100ms tạo ngẫu nhiên 1 vụ nổ trên thân Boss
+            if now - self.last_explosion_time > 100:
+                ex = random.randint(self.rect.left, self.rect.right)
+                ey = random.randint(self.rect.top, self.rect.bottom)
+                self.explosions_group.add(Explosion(ex, ey))
+                self.last_explosion_time = now
+                
+            self.explosions_group.update()
+            
+            # Trì hoãn cái chết 1.5 giây (1500ms) rồi mới xóa Boss hoàn toàn
+            if now - self.death_timer > 2000:
+                self.kill()
+                
+            return
         #dang nhoai manf hinh
         if self.dang_bay:
             self.rect.y += self.speed_y

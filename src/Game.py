@@ -196,7 +196,7 @@ class Game:
                 for boss in self.boss_group:
                     boss.bullets.update()       
                     boss.bullets.draw(self.screen)
-
+                    boss.explosions_group.draw(self.screen) #vu no
                 self.va_cham()
                 self.trung_boss()
                 # DEBUG: xoá khi chỉnh xong
