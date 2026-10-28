@@ -28,7 +28,26 @@ class player(pygame.sprite.Sprite):
         self.hitbox = pygame.Rect(0, 0, HITBOX_W, HITBOX_H)
         self.hitbox.center = self.rect.center
 
-    def update(self,screen):
+        # Thời gian tác dụng của vật phẩm (tính theo mili-giây)
+        self.invincible_until = 0
+        self.double_damage_until = 0
+
+    def activate_invincible(self, now, duration=10000):
+        self.invincible_until = now + duration
+
+    def activate_double_damage(self, now, duration=10000):
+        self.double_damage_until = now + duration
+
+    def is_invincible(self, now):
+        return now < self.invincible_until
+
+    def is_double_damage(self, now):
+        return now < self.double_damage_until
+
+    def update(self, screen):
+        import math
+        now = pygame.time.get_ticks()
+
         # 2. Quản lý chuyển động phi thuyền (WASD và Phím Mũi tên)
         key = pygame.key.get_pressed()
         if key[pygame.K_a] or key[pygame.K_LEFT]:
@@ -44,6 +63,29 @@ class player(pygame.sprite.Sprite):
             self.rect.y += 3
             if self.rect.bottom >= 750: self.rect.bottom = 750
         self.hitbox.center = self.rect.center
-        # 2. Vẽ thanh HP góc dưới màn hình
+
+        # 3. Vẽ hiệu ứng hào quang bảo vệ khi BẤT TỬ
+        if self.is_invincible(now):
+            radius = max(self.rect.width, self.rect.height) // 2 + 10
+            pulse = int(math.sin(now * 0.015) * 3)
+            shield_surf = pygame.Surface(((radius + 10) * 2, (radius + 10) * 2), pygame.SRCALPHA)
+            center = (radius + 10, radius + 10)
+            pygame.draw.circle(shield_surf, (0, 200, 255, 80), center, radius + pulse)
+            pygame.draw.circle(shield_surf, (0, 240, 255, 200), center, radius + pulse, 3)
+            pygame.draw.circle(shield_surf, (255, 255, 255, 220), center, radius + pulse - 2, 1)
+            screen.blit(shield_surf, shield_surf.get_rect(center=self.rect.center))
+
+        # 4. Vẽ hiệu ứng hào quang rực lửa khi X2 SÁT THƯƠNG
+        if self.is_double_damage(now):
+            radius = max(self.rect.width, self.rect.height) // 2 + 5
+            pulse = int(math.sin(now * 0.02) * 2)
+            dmg_surf = pygame.Surface(((radius + 10) * 2, (radius + 10) * 2), pygame.SRCALPHA)
+            center = (radius + 10, radius + 10)
+            pygame.draw.circle(dmg_surf, (255, 80, 0, 70), center, radius + pulse)
+            pygame.draw.circle(dmg_surf, (255, 140, 0, 190), center, radius + pulse, 2)
+            screen.blit(dmg_surf, dmg_surf.get_rect(center=self.rect.center))
+
+        # 5. Vẽ thanh HP góc dưới màn hình
         hp_image = self.hp[self.current_hp]
         screen.blit(hp_image, (0, 650))
+
