@@ -2,8 +2,6 @@ import pygame
 import random
 from random import choice
 
-from pygame.display import update
-
 from src.Giao_dien import giao_dien
 from src.Player import player
 from src.Bullet import bullet_list
@@ -12,7 +10,7 @@ from src.CHAR_SELECT import char_select
 from src.Background import Background
 from src.Boss import Boss
 from src.BossBullet import boss_bullet_list
-from src.Pause import Pause
+from src.Pause import Pause, Result
 from src.Item import Item
 pygame.init()
 
@@ -24,7 +22,9 @@ class Game:
         pygame.display.set_caption("MY GAME")
         #pause
         self.Pause = Pause(self.screen)
-
+        #result
+        self.result= Result(self.screen)
+        #giao dien
         self.menu = giao_dien(self.screen)
         self.state = "MENU"
         # them nguoi choi (mac dinh la player 0)
@@ -35,7 +35,7 @@ class Game:
         self.background = Background()
         #am thanh
         self.sound = sound()
-        #####bullet
+        #####bullet player
         self.bullet = pygame.sprite.Group()
         self.SPAWM_bullet = pygame.USEREVENT + 2
         pygame.time.set_timer(self.SPAWM_bullet, 300)
@@ -53,13 +53,15 @@ class Game:
 
         self.char_select = char_select(self.screen)
         # chon boss
+        self.boss_chet_luc = None  # thoi diem boss het mau
         self.boss_group = pygame.sprite.GroupSingle()
-        self.boss_group.add(Boss(2))
+        self.boss_group.add(Boss(0))
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
         #luu lai man hinh
         self.pause_background = None
-
+        #bat hitbox
+        self.hitbox=False
     def cap_nhat_vu_khi(self, ship_id):
         """player[i] se tu dong di chung voi bullet_list[i]"""
         self.selected_player_id = ship_id
@@ -97,13 +99,15 @@ class Game:
                 break
         if self.char_select.back_rect.collidepoint(event.pos):
             self.state = "MENU"
-        for i in range(2):
+        for i in range(3):
             if self.char_select.bosses[i][2].collidepoint(event.pos):
                 self.char_select.selected_boss=i;
                 self.boss_group.add(Boss(i));
                 break;
 
     def restart_game(self):
+        #dat lai hp boss
+        self.boss_chet_luc = None  # thoi diem boss het mau
         # Dat lai nguoi choi
         self.player.empty()
         self.player.add(player(self.selected_player_id))
@@ -121,7 +125,8 @@ class Game:
         # Cap nhat vu khi theo nhan vat hien tai
         self.cap_nhat_vu_khi(self.selected_player_id)
         # Chuyen ve man choi
-        if(self.state=="PAUSE"): self.state = "PLAY"
+        if(self.state== "PAUSE" ): self.state = "PLAY"
+        if(self.state== "RESULT" ): self.state = "PLAY"
     def su_kien_pause(self,event):
         if self.background.nut_pause_rect.collidepoint(event.pos) and self.state=="PLAY":
             self.state = "PAUSE"
@@ -132,6 +137,7 @@ class Game:
                 self.restart_game()
             if self.Pause.buttons[2][1].collidepoint(event.pos):
                 self.state = "CHAR_SELECT"
+                self.restart_game()
 
     def trung_boss(self):
         boss = self.boss_group.sprite
@@ -145,13 +151,26 @@ class Game:
         dan_trung = pygame.sprite.spritecollide(boss, self.bullet, True, collided=lambda bo, d: bo.hitbox.colliderect(d.rect))
         for dan in dan_trung:
             boss.luong_mau(getattr(dan, 'damage', 10) * multiplier)
-            print("Boss HP:", boss.hp)  # DEBUG: xoá khi xong
+            print("Boss HP:", boss.hp)
             # Laser: trúng thì KHÔNG xoá (False), trừ máu mỗi frame
         for tia in pygame.sprite.spritecollide(boss, self.laser, False, collided=lambda bo, d: bo.hitbox.colliderect(d.rect)):
             boss.luong_mau(getattr(tia, 'damage', 1) * multiplier)
-            print("Boss HP:", boss.hp)  # DEBUG: xoá khi xong
+            print("Boss HP:", boss.hp)
+
+        # Boss het mau -> cho no xong roi moi hien Win
+        if boss.hp <= 0:
+            if self.boss_chet_luc is None:
+                self.boss_chet_luc = now  # bat dau dem gio
+            elif now - self.boss_chet_luc >= 1500:  # 2 giay, chinh theo do dai vu no
+                self.boss_chet_luc = None
+                if self.state == "PLAY":
+                    self.result.result_now = "Win"
+                    self.state = "RESULT"
     #va cham
     def va_cham(self):
+        boss = self.boss_group.sprite
+        if boss is not None and boss.hp <= 0:
+            return  # boss dang no, khong tinh va cham nua
         now = pygame.time.get_ticks()
         is_inv = self.player.sprite and self.player.sprite.is_invincible(now)
         for boss in self.boss_group:
@@ -163,12 +182,8 @@ class Game:
                 if is_inv:
                     print("Khien bao ve chan dan Boss! Bat tu, khong mat mau.")
                 else:
-                    #if(self.player.sprite.current_hp+1>3):
-                        #self.state = "CHAR_SELECT"
-                        #self.player.sprite.current_hp=0
-                       # self.restart_game()
-                    #else:
-                       # self.player.sprite.current_hp+=1
+                    self.result.result_now="Loser"
+                    self.state="RESULT"
                     print("dinhdan")
                     #self.running=False
 
@@ -222,7 +237,15 @@ class Game:
             self.screen.blit(surf, (15, y_offset))
             txt = self.hud_font.render(f"2X DAMAGE: {remain_sec:.1f}s", True, (255, 255, 255))
             self.screen.blit(txt, (25, y_offset + 5))
+    def bang_result(self,event):
 
+        if(self.result.buttons[0][1].collidepoint(event.pos)):
+            self.restart_game()
+            self.result.result_now="None"
+        if(self.result.buttons[1][1].collidepoint(event.pos)):
+            self.result.result_now="None"
+            self.state = "CHAR_SELECT"
+            self.restart_game()
     def run_game(self):
         while self.running:
             self.screen.fill((0, 0, 0))
@@ -238,6 +261,7 @@ class Game:
                     if self.state == "CHAR_SELECT": self.su_kien_char_select(event)
                     if self.state == "PLAY": self.su_kien_pause(event)
                     if self.state == "PAUSE": self.su_kien_pause(event)
+                    if self.state == "RESULT": self.bang_result(event)
                 if self.state == "PLAY":
                     weapon_cls = bullet_list[self.selected_player_id]
                     #chi boss xh moi ban
@@ -255,6 +279,9 @@ class Game:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             self.state = "PAUSE"
+                        if event.key == pygame.K_F1:
+                            if self.hitbox: self.hitbox = False
+                            else: self.hitbox = True
 
             # --- 2. PHẦN CẬP NHẬT LOGIC VÀ VẼ LÊN MÀN HÌNH ---
             if self.state == "MENU":
@@ -273,22 +300,23 @@ class Game:
 
                 self.player.update(self.screen)
                 self.player.draw(self.screen)
-                pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.hitbox, 1)
 
                 self.boss_group.update(self.player.sprite)
                 self.boss_group.draw(self.screen)
                 for boss in self.boss_group:
-                    boss.bullets.update()       
+                    boss.bullets.update()
                     boss.bullets.draw(self.screen)
                     boss.explosions_group.draw(self.screen) #vu no
                 self.va_cham()
                 self.trung_boss()
-                # DEBUG: xoá khi chỉnh xong
-                pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.hitbox, 1)
-                for boss in self.boss_group:
-                    pygame.draw.rect(self.screen, (255, 255, 0), boss.hitbox, 1)
-                    for b in boss.bullets:
-                        pygame.draw.rect(self.screen, (0, 255, 0), b.hitbox, 1)
+                # nhan F11 de hien hitbox
+                if(self.hitbox==True):
+                    pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.hitbox, 1)
+                    pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.hitbox, 1)
+                    for boss in self.boss_group:
+                        pygame.draw.rect(self.screen, (255, 255, 0), boss.hitbox, 1)
+                        for b in boss.bullets:
+                            pygame.draw.rect(self.screen, (0, 255, 0), b.hitbox, 1)
                 boss = self.boss_group.sprite
                 if boss:
                     ty_le = max(boss.hp, 0) / boss.max_hp
@@ -297,6 +325,7 @@ class Game:
                 # Cập nhật và vẽ vũ khí tương ứng của player[i]
                 weapon_cls = bullet_list[self.selected_player_id]
                 if weapon_cls.kind == "LASER":
+                    self.sound.play_shot()
                     self.laser.update()
                     self.laser.draw(self.screen)
                 else:
@@ -311,7 +340,13 @@ class Game:
                 if self.pause_background is not None:
                     self.screen.blit(self.pause_background, (0, 0))
                 self.Pause.update()
-
+            elif self.state == "RESULT":
+                if self.result.result_now=="Win":
+                    if self.pause_background is not None:
+                        self.screen.blit(self.pause_background, (0, 0))
+                    self.result.update()
+                else:
+                    self.result.update()
 
             # --- 3. CẬP NHẬT FRAME ---
             pygame.display.update()

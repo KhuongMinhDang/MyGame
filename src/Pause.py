@@ -40,3 +40,56 @@ class Pause:
                         (rect.left - 5, rect.centery)
                     ]
                 )
+class Result:
+    def __init__(self, screen):
+        #ket qua hien thi
+        self.screen = screen
+        self.font=pygame.font.Font("asset/image/ui/font.ttf", 40)
+        self.result_now=None
+        self.screen=screen
+
+        self.restart = pygame.image.load("asset/image/ui/restart.png").convert_alpha();
+        self.restart = pygame.transform.scale(self.restart, (190, 100))
+        self.main_menu = pygame.image.load("asset/image/ui/main_menu.png").convert_alpha();
+        self.main_menu = pygame.transform.scale(self.main_menu, (190, 100))
+        self.buttons = [
+            [self.restart, self.restart.get_rect(center=(300, 370)), "restart"],
+            [self.main_menu, self.main_menu.get_rect(center=(500, 370)), "main_menu"]
+        ]
+    def update(self):
+        if(not self.result_now=="Win"):
+            text = self.font.render("YOU LOSE", True, (255, 0, 0))
+
+            rect = text.get_rect(center=(400, 300))
+
+            self.screen.blit(text, rect)
+        else:
+            text = self.font.render("YOU WIN", True, (255, 0, 0))
+
+            rect = text.get_rect(center=(400, 300))
+
+            self.screen.blit(text, rect)
+
+        pos = pygame.mouse.get_pos()
+        selected = -1
+
+        # Xac dinh nut dang duoc tro chuot
+        for i, (image, rect, text) in enumerate(self.buttons):
+            if rect.collidepoint(pos):
+                selected = i
+                break
+
+        # Ve cac nut va tam giac
+        for i, (image, rect, text) in enumerate(self.buttons):
+            self.screen.blit(image, rect)
+
+            if i == selected:
+                pygame.draw.polygon(
+                    self.screen,
+                    (255, 255, 255),
+                    [
+                        (rect.left - 20, rect.centery - 8),
+                        (rect.left - 20, rect.centery + 8),
+                        (rect.left - 5, rect.centery)
+                    ]
+                )

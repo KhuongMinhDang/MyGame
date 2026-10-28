@@ -6,12 +6,8 @@ class player(pygame.sprite.Sprite):
         super().__init__()
         self.ship_id = x
         #hp
-        self.hp=[]
-        self.current_hp=0
-        for i in range(4):
-            image=pygame.image.load(f"asset/image/ui/hp-{i}.png").convert_alpha()
-            image=pygame.transform.scale(image, (70, 70))
-            self.hp.append(image)
+        self.hp=pygame.image.load("asset/image/ui/hp-0.png").convert_alpha()
+        self.hp=pygame.transform.scale(self.hp, (70, 70))
         # 1. Quản lý hình ảnh phi thuyền
         self.image_ship = [
             pygame.image.load('asset/image/SpaceShips/Ship_1.png').convert_alpha(),
@@ -86,6 +82,5 @@ class player(pygame.sprite.Sprite):
             screen.blit(dmg_surf, dmg_surf.get_rect(center=self.rect.center))
 
         # 5. Vẽ thanh HP góc dưới màn hình
-        hp_image = self.hp[self.current_hp]
-        screen.blit(hp_image, (0, 650))
+        screen.blit(self.hp, (0, 650))
 

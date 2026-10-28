@@ -7,13 +7,13 @@ class char_select:
         # 2 o boss
         self.bosses = []
         self.selected_boss = 0
-        for i in range(1, 3):
+        for i in range(1, 4):
             image = pygame.image.load(f"asset/image/SpaceShips/boss{i}.png").convert_alpha()
 
-            small = pygame.transform.scale(image, (280, 220))
-            big = pygame.transform.scale(image, (380, 310))
+            small = pygame.transform.scale(image, (250, 190))
+            big = pygame.transform.scale(image, (380, 300))
 
-            rect = small.get_rect(center=(250 + (i - 1) * 300, 250))
+            rect = small.get_rect(center=(120 + (i - 1) * 270, 200))
 
             self.bosses.append((small, big, rect))
         # 4 may bay
@@ -42,7 +42,7 @@ class char_select:
     def run(self):
         self.screen.blit(self.background, (0, 0))
         mouse_pos = pygame.mouse.get_pos()
-        # Ve 2 boss
+        # Ve 3 boss
         for i, (small, big, rect) in enumerate(self.bosses):
             if rect.collidepoint(mouse_pos):
                 image = big
