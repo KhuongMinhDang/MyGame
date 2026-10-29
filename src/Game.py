@@ -2,7 +2,7 @@ import pygame
 import random
 from random import choice
 
-from src.Giao_dien import giao_dien
+from src.Giao_dien import giao_dien, Setting
 from src.Player import player
 from src.Bullet import bullet_list
 from src.Sound import sound
@@ -20,12 +20,16 @@ class Game:
         self.screen = pygame.display.set_mode((800, 750))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("THUNDER STRIKE")
+        pygame.mixer.music.load("asset/sound/music-1.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
         #pause
         self.Pause = Pause(self.screen)
         #result
         self.result= Result(self.screen)
         #giao dien
         self.menu = giao_dien(self.screen)
+        self.setting = Setting(self.screen)
         self.state = "MENU"
         # them nguoi choi (mac dinh la player 0)
         self.selected_player_id = 0
@@ -62,7 +66,6 @@ class Game:
         self.pause_background = None
         #bat hitbox
         self.hitbox=False
-        #am thanh laze
         self.soundlaze = None
     def cap_nhat_vu_khi(self, ship_id):
         """player[i] se tu dong di chung voi bullet_list[i]"""
@@ -78,10 +81,11 @@ class Game:
         """Hàm xử lý riêng các click chuột khi đang ở MENU"""
         if self.menu.buttons[0][1].collidepoint(event.pos):
             print("Chuyển sang màn hình chọn nhân vật!")
-            self.state = "CHAR_SELECT"  # Cập nhật trạng thái!
+            self.state = "CHAR_SELECT"
 
         elif self.menu.buttons[1][1].collidepoint(event.pos):
             print("Mở Setting")
+            self.state = "SETTING"
 
         elif self.menu.buttons[2][1].collidepoint(event.pos):
             print("Exit")
@@ -262,9 +266,14 @@ class Game:
                     # Chuyển hướng sự kiện tùy theo trạng thái game
                     if self.state == "MENU": self.su_kien_menu(event)
                     elif self.state == "CHAR_SELECT": self.su_kien_char_select(event)
+                    elif self.state == "SETTING":
+                        if self.setting.handle_event(event):
+                            self.state = "MENU"
                     elif self.state == "PLAY": self.su_kien_pause(event)
                     elif self.state == "PAUSE": self.su_kien_pause(event)
                     elif self.state == "RESULT": self.bang_result(event)
+                elif self.state == "SETTING" and event.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
+                    self.setting.handle_event(event)
                 if self.state == "PLAY":
                     weapon_cls = bullet_list[self.selected_player_id]
                     #chi boss xh moi ban
@@ -289,6 +298,10 @@ class Game:
             # --- 2. PHẦN CẬP NHẬT LOGIC VÀ VẼ LÊN MÀN HÌNH ---
             if self.state == "MENU":
                 self.menu.run()  # Vẽ giao diện Menu
+
+            elif self.state == "SETTING":
+                self.menu.run()
+                self.setting.run()
 
             elif self.state == "CHAR_SELECT":
                 self.char_select.run()
@@ -329,9 +342,8 @@ class Game:
                 weapon_cls = bullet_list[self.selected_player_id]
                 if weapon_cls.kind == "LASER":
                     now = pygame.time.get_ticks()
-                    if self.soundlaze == None: self.soundlaze = now
-                    if now - self.soundlaze > 1000:
-                        self.soundlaze = None
+                    if self.soundlaze is None or now - self.soundlaze > 1000:
+                        self.soundlaze = now
                         self.sound.play_shot()
                     self.laser.update()
                     self.laser.draw(self.screen)
