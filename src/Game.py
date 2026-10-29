@@ -19,7 +19,7 @@ class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((800, 750))
         self.clock = pygame.time.Clock()
-        pygame.display.set_caption("MY GAME")
+        pygame.display.set_caption("THUNDER STRIKE")
         #pause
         self.Pause = Pause(self.screen)
         #result
@@ -62,6 +62,8 @@ class Game:
         self.pause_background = None
         #bat hitbox
         self.hitbox=False
+        #am thanh laze
+        self.soundlaze = None
     def cap_nhat_vu_khi(self, ship_id):
         """player[i] se tu dong di chung voi bullet_list[i]"""
         self.selected_player_id = ship_id
@@ -164,6 +166,7 @@ class Game:
             elif now - self.boss_chet_luc >= 1500:  # 2 giay, chinh theo do dai vu no
                 self.boss_chet_luc = None
                 if self.state == "PLAY":
+                    self.sound.play_win()
                     self.result.result_now = "Win"
                     self.state = "RESULT"
     #va cham
@@ -258,10 +261,10 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     # Chuyển hướng sự kiện tùy theo trạng thái game
                     if self.state == "MENU": self.su_kien_menu(event)
-                    if self.state == "CHAR_SELECT": self.su_kien_char_select(event)
-                    if self.state == "PLAY": self.su_kien_pause(event)
-                    if self.state == "PAUSE": self.su_kien_pause(event)
-                    if self.state == "RESULT": self.bang_result(event)
+                    elif self.state == "CHAR_SELECT": self.su_kien_char_select(event)
+                    elif self.state == "PLAY": self.su_kien_pause(event)
+                    elif self.state == "PAUSE": self.su_kien_pause(event)
+                    elif self.state == "RESULT": self.bang_result(event)
                 if self.state == "PLAY":
                     weapon_cls = bullet_list[self.selected_player_id]
                     #chi boss xh moi ban
@@ -325,7 +328,11 @@ class Game:
                 # Cập nhật và vẽ vũ khí tương ứng của player[i]
                 weapon_cls = bullet_list[self.selected_player_id]
                 if weapon_cls.kind == "LASER":
-                    self.sound.play_shot()
+                    now = pygame.time.get_ticks()
+                    if self.soundlaze == None: self.soundlaze = now
+                    if now - self.soundlaze > 1000:
+                        self.soundlaze = None
+                        self.sound.play_shot()
                     self.laser.update()
                     self.laser.draw(self.screen)
                 else:

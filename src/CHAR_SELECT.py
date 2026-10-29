@@ -30,12 +30,12 @@ class char_select:
             self.players.append((small, big, rect))
 
         # Nut PLAY
-        self.back =pygame.image.load('asset/image/ui/back.png').convert_alpha()
-        self.back = pygame.transform.scale(self.back, (150, 70))
-        self.back_rect = self.back.get_rect(center=(730, 40))
+        self.back =pygame.image.load('asset/image/ui/back-3.png').convert_alpha()
+        self.back = pygame.transform.scale(self.back, (150, 60))
+        self.back_rect = self.back.get_rect(center=(720, 40))
 
-        self.play_image = pygame.image.load('asset/image/ui/game.png').convert_alpha()
-        self.play_image = pygame.transform.scale(self.play_image, (200, 150))
+        self.play_image = pygame.image.load('asset/image/ui/game-3.png').convert_alpha()
+        self.play_image = pygame.transform.scale(self.play_image, (150, 60))
         self.play_rect = self.play_image.get_rect(center=(400, 650))
         #man hinh
         self.background = pygame.image.load('asset/image/ui/background.webp').convert_alpha()

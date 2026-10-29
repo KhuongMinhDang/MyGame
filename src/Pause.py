@@ -4,12 +4,12 @@ class Pause:
         self.screen = screen
         self.surface = pygame.Surface((300, 250), pygame.SRCALPHA)
         self.surface.fill((20, 20, 40, 220))
-        self.resume = pygame.image.load("asset/image/ui/resume.png").convert_alpha();
-        self.resume = pygame.transform.scale(self.resume, (190, 100))
-        self.restart = pygame.image.load("asset/image/ui/restart.png").convert_alpha();
-        self.restart = pygame.transform.scale(self.restart, (190, 100))
-        self.main_menu= pygame.image.load("asset/image/ui/main_menu.png").convert_alpha();
-        self.main_menu = pygame.transform.scale(self.main_menu, (190, 100))
+        self.resume = pygame.image.load("asset/image/ui/resume-3.png").convert_alpha();
+        self.resume = pygame.transform.scale(self.resume, (150, 60))
+        self.restart = pygame.image.load("asset/image/ui/restart-3.png").convert_alpha();
+        self.restart = pygame.transform.scale(self.restart, (150, 60))
+        self.main_menu= pygame.image.load("asset/image/ui/main_menu-3.png").convert_alpha();
+        self.main_menu = pygame.transform.scale(self.main_menu, (150, 60))
         self.buttons = [
             [self.resume, self.resume.get_rect(center=(400, 290)), "resume"],
             [self.restart, self.restart.get_rect(center=(400, 370)), "restart"],
@@ -48,10 +48,10 @@ class Result:
         self.result_now=None
         self.screen=screen
 
-        self.restart = pygame.image.load("asset/image/ui/restart.png").convert_alpha();
-        self.restart = pygame.transform.scale(self.restart, (190, 100))
-        self.main_menu = pygame.image.load("asset/image/ui/main_menu.png").convert_alpha();
-        self.main_menu = pygame.transform.scale(self.main_menu, (190, 100))
+        self.restart = pygame.image.load("asset/image/ui/restart-3.png").convert_alpha();
+        self.restart = pygame.transform.scale(self.restart, (150, 60))
+        self.main_menu = pygame.image.load("asset/image/ui/main_menu-3.png").convert_alpha();
+        self.main_menu = pygame.transform.scale(self.main_menu, (150, 60))
         self.buttons = [
             [self.restart, self.restart.get_rect(center=(300, 370)), "restart"],
             [self.main_menu, self.main_menu.get_rect(center=(500, 370)), "main_menu"]
