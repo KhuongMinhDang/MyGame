@@ -132,7 +132,7 @@ class NormalBullet(Bullet):
 
 
 class RedLaser(LaserBeam):
-    damage=20
+    damage=0.4
     """Tia Laze Đỏ rực chiếu liên tục"""
     def __init__(self, player):
         super().__init__(player, base_width=14, color=(255, 60, 60))
