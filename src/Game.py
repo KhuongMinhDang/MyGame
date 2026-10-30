@@ -1,7 +1,8 @@
 import pygame
 import random
 from random import choice
-
+import asyncio
+import sys
 from src.Giao_dien import giao_dien, Setting
 from src.Player import player
 from src.Bullet import bullet_list
@@ -20,7 +21,7 @@ class Game:
         self.screen = pygame.display.set_mode((800, 750))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption("THUNDER STRIKE")
-        pygame.mixer.music.load("asset/sound/music-1.mp3")
+        pygame.mixer.music.load("asset/sound/music-1.ogg")
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)
         #pause
@@ -50,7 +51,7 @@ class Game:
         self.item_group = pygame.sprite.Group()
         self.SPAWN_ITEM = pygame.USEREVENT + 3
         pygame.time.set_timer(self.SPAWN_ITEM, 15000)
-        self.hud_font = pygame.font.SysFont("arial", 15, bold=True)
+        self.hud_font = pygame.font.Font("asset/image/ui/font.ttf", 15)
 
         # Gan loai dan bullet_list[0] tuong ung voi player 0
         self.cap_nhat_vu_khi(self.selected_player_id)
@@ -89,7 +90,8 @@ class Game:
 
         elif self.menu.buttons[2][1].collidepoint(event.pos):
             print("Exit")
-            self.running = False  # Tắt game
+            if sys.platform != "emscripten":
+                self.running = False  # chỉ thoát khi chạy trên máy tính
 
     def su_kien_char_select(self, event):
         if self.char_select.play_rect.collidepoint(event.pos):
@@ -253,14 +255,16 @@ class Game:
             self.result.result_now="None"
             self.state = "CHAR_SELECT"
             self.restart_game()
-    def run_game(self):
+
+    async def run_game(self):
         while self.running:
             self.screen.fill((0, 0, 0))
 
             # --- 1. PHẦN XỬ LÝ SỰ KIỆN CHUỘT/BÀN PHÍM ---
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    if sys.platform != "emscripten":
+                        self.running = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     # Chuyển hướng sự kiện tùy theo trạng thái game
@@ -370,5 +374,7 @@ class Game:
             # --- 3. CẬP NHẬT FRAME ---
             pygame.display.update()
             self.clock.tick(60)
+            await asyncio.sleep(0)
 
-        pygame.quit()
+        if sys.platform != "emscripten":
+            pygame.quit()

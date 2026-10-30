@@ -25,7 +25,8 @@ class Boss(pygame.sprite.Sprite):
         self.hitbox.center = self.rect.center
 
         if self.boss_id==0: self.hp=1500
-        else: self.hp=2000
+        elif self.boss_id==1: self.hp=2000
+        else: self.hp=2500
         self.max_hp = self.hp
         self.bullets = pygame.sprite.Group() # Nhóm chứa đạn của boss này
         self.dang_bay = True

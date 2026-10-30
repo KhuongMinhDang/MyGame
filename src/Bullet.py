@@ -1,7 +1,6 @@
 import pygame
 import math
 
-
 # 1. LỚP ĐẠN THƯỜNG 
 class Bullet(pygame.sprite.Sprite):
     kind = "BULLET"
@@ -188,5 +187,4 @@ bullet_list = [
     BounceTripleBullet,
     DualParallelBullet
 ]
-
 

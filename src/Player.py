@@ -1,6 +1,4 @@
 import pygame
-
-
 class player(pygame.sprite.Sprite):
     def __init__(self, x=0):
         super().__init__()
@@ -83,4 +81,3 @@ class player(pygame.sprite.Sprite):
 
         # 5. Vẽ thanh HP góc dưới màn hình
         screen.blit(self.hp, (0, 650))
-

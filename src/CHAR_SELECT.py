@@ -38,7 +38,8 @@ class char_select:
         self.play_image = pygame.transform.scale(self.play_image, (150, 60))
         self.play_rect = self.play_image.get_rect(center=(400, 650))
         #man hinh
-        self.background = pygame.image.load('asset/image/ui/background.webp').convert_alpha()
+        self.background = pygame.image.load('asset/image/ui/background.jpg').convert_alpha()
+        self.background= pygame.transform.scale(self.background, (800, 750))
     def run(self):
         self.screen.blit(self.background, (0, 0))
         mouse_pos = pygame.mouse.get_pos()
