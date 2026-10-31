@@ -13,6 +13,8 @@ from src.Boss import Boss
 from src.BossBullet import boss_bullet_list
 from src.Pause import Pause, Result
 from src.Item import Item
+from src.RecordManager import RecordManager
+from src.Leaderboard import Leaderboard
 pygame.init()
 
 
@@ -24,6 +26,12 @@ class Game:
         pygame.mixer.music.load("asset/sound/music-1.ogg")
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)
+
+        # Quan ly ky luc & Bang ky luc
+        self.record_manager = RecordManager()
+        self.leaderboard = Leaderboard(self.screen, self.record_manager)
+        self.previous_state = "MENU"
+
         #pause
         self.Pause = Pause(self.screen)
         #result
@@ -61,6 +69,13 @@ class Game:
         self.boss_chet_luc = None  # thoi diem boss het mau
         self.boss_group = pygame.sprite.GroupSingle()
         self.boss_group.add(Boss(0))
+
+        # Bien dem gio tran dau
+        self.battle_start_time = None
+        self.pause_start_time = None
+        self.total_paused_duration = 0
+        self.defeat_time_sec = None
+
         # Biến này để kiểm soát vòng lặp game, thay cho biến running cục bộ
         self.running = True
         #luu lai man hinh
@@ -80,24 +95,33 @@ class Game:
 
     def su_kien_menu(self, event):
         """Hàm xử lý riêng các click chuột khi đang ở MENU"""
-        if self.menu.buttons[0][1].collidepoint(event.pos):
-            print("Chuyển sang màn hình chọn nhân vật!")
-            self.state = "CHAR_SELECT"
-
-        elif self.menu.buttons[1][1].collidepoint(event.pos):
-            print("Mở Setting")
-            self.state = "SETTING"
-
-        elif self.menu.buttons[2][1].collidepoint(event.pos):
-            print("Exit")
-            if sys.platform != "emscripten":
-                self.running = False  # chỉ thoát khi chạy trên máy tính
+        for image, rect, tag in self.menu.buttons:
+            if rect.collidepoint(event.pos):
+                if tag == "PLAY":
+                    print("Chuyển sang màn hình chọn nhân vật!")
+                    self.state = "CHAR_SELECT"
+                elif tag == "LEADERBOARD":
+                    self.previous_state = "MENU"
+                    self.state = "LEADERBOARD"
+                elif tag == "SETTING":
+                    print("Mở Setting")
+                    self.state = "SETTING"
+                elif tag == "EXIT":
+                    print("Exit")
+                    if sys.platform != "emscripten":
+                        self.running = False
+                break
 
     def su_kien_char_select(self, event):
         if self.char_select.play_rect.collidepoint(event.pos):
             self.state = "PLAY"
             self.item_group.empty()
             pygame.time.set_timer(self.SPAWN_ITEM, 15000)
+            # Reset bo dem gio tran dau
+            self.battle_start_time = None
+            self.pause_start_time = None
+            self.total_paused_duration = 0
+            self.defeat_time_sec = None
         for i in range(4):
             if self.char_select.players[i][2].collidepoint(event.pos):
                 self.char_select.selected = i
@@ -116,6 +140,11 @@ class Game:
     def restart_game(self):
         #dat lai hp boss
         self.boss_chet_luc = None  # thoi diem boss het mau
+        # Reset bo dem gio tran dau
+        self.battle_start_time = None
+        self.pause_start_time = None
+        self.total_paused_duration = 0
+        self.defeat_time_sec = None
         # Dat lai nguoi choi
         self.player.empty()
         self.player.add(player(self.selected_player_id))
@@ -138,9 +167,13 @@ class Game:
     def su_kien_pause(self,event):
         if self.background.nut_pause_rect.collidepoint(event.pos) and self.state=="PLAY":
             self.state = "PAUSE"
+            self.pause_start_time = pygame.time.get_ticks()
         if self.state=="PAUSE":
             if self.Pause.buttons[0][1].collidepoint(event.pos):
                 self.state = "PLAY"
+                if self.pause_start_time is not None:
+                    self.total_paused_duration += (pygame.time.get_ticks() - self.pause_start_time)
+                    self.pause_start_time = None
             if self.Pause.buttons[1][1].collidepoint(event.pos):
                 self.restart_game()
             if self.Pause.buttons[2][1].collidepoint(event.pos):
@@ -165,10 +198,29 @@ class Game:
             boss.luong_mau(getattr(tia, 'damage', 1) * multiplier)
             print("Boss HP:", boss.hp)
 
-        # Boss het mau -> cho no xong roi moi hien Win
+        # Boss het mau -> tinh thoi gian tieu diet va hien Win
         if boss.hp <= 0:
             if self.boss_chet_luc is None:
                 self.boss_chet_luc = now  # bat dau dem gio
+
+                # Tinh thoi gian tieu diet (loai tru thoi gian pause)
+                if self.battle_start_time is not None:
+                    elapsed_ms = max(0, now - self.battle_start_time - self.total_paused_duration)
+                    self.defeat_time_sec = elapsed_ms / 1000.0
+                else:
+                    self.defeat_time_sec = 0.0
+
+                # Luu va cap nhat ky luc
+                boss_id = getattr(boss, 'boss_id', self.char_select.selected_boss)
+                ship_id = self.selected_player_id
+                is_new, old_record = self.record_manager.save_record_if_best(boss_id, ship_id, self.defeat_time_sec)
+                current_best = self.record_manager.get_record(boss_id, ship_id)
+
+                clear_str = self.record_manager.format_time(self.defeat_time_sec)
+                best_str = self.record_manager.format_time(current_best)
+                self.result.set_stats(clear_str, best_str, is_new)
+                print(f"Boss bi tieu diet trong {clear_str}! Ky luc: {best_str} (Moi: {is_new})")
+
             elif now - self.boss_chet_luc >= 1500:  # 2 giay, chinh theo do dai vu no
                 self.boss_chet_luc = None
                 if self.state == "PLAY":
@@ -273,11 +325,21 @@ class Game:
                     elif self.state == "SETTING":
                         if self.setting.handle_event(event):
                             self.state = "MENU"
+                    elif self.state == "LEADERBOARD":
+                        action = self.leaderboard.handle_event(event)
+                        if action == "BACK":
+                            self.state = self.previous_state
                     elif self.state == "PLAY": self.su_kien_pause(event)
                     elif self.state == "PAUSE": self.su_kien_pause(event)
                     elif self.state == "RESULT": self.bang_result(event)
                 elif self.state == "SETTING" and event.type in (pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
                     self.setting.handle_event(event)
+
+                if event.type == pygame.KEYDOWN:
+                    if self.state == "LEADERBOARD":
+                        action = self.leaderboard.handle_event(event)
+                        if action == "BACK":
+                            self.state = self.previous_state
                 if self.state == "PLAY":
                     weapon_cls = bullet_list[self.selected_player_id]
                     #chi boss xh moi ban
@@ -307,9 +369,16 @@ class Game:
                 self.menu.run()
                 self.setting.run()
 
+            elif self.state == "LEADERBOARD":
+                self.leaderboard.draw()
+
             elif self.state == "CHAR_SELECT":
                 self.char_select.run()
             elif self.state == "PLAY":
+                boss = self.boss_group.sprite
+                if boss is not None and not boss.dang_bay and self.battle_start_time is None:
+                    self.battle_start_time = pygame.time.get_ticks()
+
                 self.background.update()
                 self.background.draw(self.screen)
 

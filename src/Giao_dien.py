@@ -18,9 +18,13 @@ class giao_dien:
         self.stop = pygame.image.load('asset/image/ui/stop-3.png').convert_alpha()
         self.stop = pygame.transform.scale(self.stop, (150, 60))
 
+        self.leaderboard_btn = pygame.image.load('asset/image/ui/leaderboard.png').convert_alpha()
+        self.leaderboard_btn = pygame.transform.scale(self.leaderboard_btn, (150, 60))
+
         # Luu anh va vi tri cac nut
         self.buttons = [
-            [self.game, self.game.get_rect(center=(400, 610)), "PLAY"],
+            [self.game, self.game.get_rect(center=(400, 550)), "PLAY"],
+            [self.leaderboard_btn, self.leaderboard_btn.get_rect(center=(400, 610)), "LEADERBOARD"],
             [self.setting, self.setting.get_rect(center=(320, 670)), "SETTING"],
             [self.stop, self.stop.get_rect(center=(480, 670)), "EXIT"]
         ]
